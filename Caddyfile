@@ -1,0 +1,8 @@
+{
+  http_port 81
+  local_certs
+}
+
+nodeauth.dev {
+  reverse_proxy 127.0.0.1:1919
+}

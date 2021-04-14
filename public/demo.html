@@ -56,7 +56,6 @@
         //await postJson('/api/login', {email, password});
         //console.log('logged in');
 
-        //TODO: What should be passed to verify that the correct session is being logged out?
         await getJson('/api/logout', {});
         console.log('logged out');
       } catch (e) {

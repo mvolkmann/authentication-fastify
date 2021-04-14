@@ -20,7 +20,17 @@ const __dirname = path.dirname(__filename);
 
 // Load environment variables from the .env file into process.env.
 dotenv.config();
-const JWT_SIGNATURE = process.env.JWT_SIGNATURE;
+const {JWT_SIGNATURE} = process.env;
+
+function createCookie(reply, name, data, expires) {
+  reply.setCookie(name, data, {
+    domain: process.env.ROOT_DOMAIN,
+    expires,
+    httpOnly: true,
+    path: '/',
+    secure: true
+  });
+}
 
 export async function createSession(userId, connection) {
   //TODO: Why not use a UUID?
@@ -50,17 +60,8 @@ export async function createTokens(userId, sessionToken, reply) {
 
     const now = new Date();
     const expires = now.setDate(now.getDate() + 7); // one week
-    reply.setCookie('access-token', accessToken, {
-      domain: 'localhost',
-      expires,
-      httpOnly: true,
-      path: '/'
-    });
-    reply.setCookie('refresh-token', refreshToken, {
-      domain: 'localhost',
-      httpOnly: true,
-      path: '/'
-    });
+    createCookie(reply, 'access-token', accessToken, expires);
+    createCookie(reply, 'refresh-token', refreshToken);
   } catch (e) {
     console.error(e);
     throw new Error('error refreshing tokens');
@@ -85,6 +86,7 @@ export async function createUser(request, reply) {
     reply.status(500).text(e.message);
   }
 }
+
 export async function deleteUser(request, reply) {
   const {email} = request.params;
   try {

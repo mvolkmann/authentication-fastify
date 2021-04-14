@@ -3,13 +3,12 @@ import mongo from 'mongodb';
 
 const {MongoClient} = mongo;
 
-const collectionMap = {};
-
 // Load environment variables from the .env file into process.env.
 dotenv.config();
 
-const url = process.env.MONGO_URL;
-export const client = new MongoClient(url, {
+const collectionMap = {};
+
+export const client = new MongoClient(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
