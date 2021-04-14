@@ -28,8 +28,7 @@ export async function createSession(userId, connection) {
   const {ip, userAgent} = connection;
 
   try {
-    const sessionCollection = await getCollection('session');
-    await sessionCollection.insertOne({
+    await getCollection('session').insertOne({
       createdAt: new Date(),
       sessionToken,
       updatedAt: new Date(),
@@ -73,13 +72,17 @@ export async function createUser(request, reply) {
   try {
     const salt = await genSalt(); // defaults to 10 rounds
     const hashedPassword = await hash(password, salt);
-    const userCollection = getCollection('user');
-    const res = await userCollection.insertOne({
+    const res = await getCollection('user').insertOne({
       email,
       password: hashedPassword,
       verified: false
     });
-    return res.insertedId;
+
+    // After successfully creating a new user,
+    // automatically log in.
+    await login(request, reply, true);
+
+    reply.send({userId: res.insertedId});
   } catch (e) {
     reply.status(500).text(e.message);
   }
@@ -87,8 +90,7 @@ export async function createUser(request, reply) {
 export async function deleteUser(request, reply) {
   const {email} = request.params;
   try {
-    const userCollection = await getCollection('user');
-    await userCollection.deleteMany({email});
+    await getCollection('user').deleteMany({email});
     reply.send('user deleted');
   } catch (e) {
     reply.status(500).send('error deleting user');
@@ -99,27 +101,29 @@ export async function deleteUser(request, reply) {
 export async function getUser(request, reply) {
   try {
     const accessToken = request?.cookies?.['access-token'];
+    console.log('auth.js getUser: accessToken =', accessToken);
     if (accessToken) {
       const decodedAccessToken = jwt.verify(accessToken, JWT_SIGNATURE);
       console.log('index.js getUser: decodedAccessToken =', decodedAccessToken);
 
-      const userCollection = getCollection('user');
-      return userCollection.findOne({_id: ObjectId(decodedAccessToken.userId)});
+      return getCollection('user').findOne({
+        _id: ObjectId(decodedAccessToken.userId)
+      });
     } else {
-      const refreshToken = request?.cookies?.['access-token'];
+      const refreshToken = request?.cookies?.['refresh-token'];
+      console.log('auth.js getUser: refreshToken =', refreshToken);
       if (refreshToken) {
         //TODO: To test use of refresh token,
         //TODO: delete the access - token cookie in DevTools.
-        const decodedRefreshToken = jwt.verify(accessToken, JWT_SIGNATURE);
+        const decodedRefreshToken = jwt.verify(refreshToken, JWT_SIGNATURE);
         console.log(
           'index.js getUser: decodedRefreshToken =',
           decodedRefreshToken
         );
         const {sessionToken} = decodedRefreshToken;
-        const sessionCollection = await getCollection('session');
-        const session = await sessionCollection.findOne({sessionToken});
+        const session = await getCollection('session').findOne({sessionToken});
         if (session.valid) {
-          const user = await userCollection.findOne({
+          const user = await getCollection('user').findOne({
             _id: ObjectId(session.userId)
           });
           if (!user) throw new Error('user not found');
@@ -138,11 +142,10 @@ export async function getUser(request, reply) {
   }
 }
 
-export async function login(request, reply) {
+export async function login(request, reply, skipSend) {
   const {email, password} = request.body;
   try {
-    const userCollection = getCollection('user');
-    const user = await userCollection.findOne({email});
+    const user = await getCollection('user').findOne({email});
     const hashedPassword = user.password;
     const matches = await compare(password, hashedPassword);
 
@@ -153,7 +156,7 @@ export async function login(request, reply) {
       };
       const sessionToken = await createSession(user._id, connection);
       await createTokens(user._id, sessionToken, reply);
-      reply.send('user logged in');
+      if (!skipSend) reply.send('');
     } else {
       reply.status(401).send('invalid email or password');
     }
@@ -167,9 +170,9 @@ export async function logout(request, reply) {
     const refreshToken = request?.cookies?.['refresh-token'];
     if (refreshToken) {
       const decodedRefreshToken = jwt.verify(refreshToken, JWT_SIGNATURE);
+      console.log('auth.js logout: decodedRefreshToken =', decodedRefreshToken);
       const {sessionToken} = decodedRefreshToken;
-      const sessionCollection = await getCollection('session');
-      await sessionCollection.deleteOne({sessionToken});
+      await getCollection('session').deleteOne({sessionToken});
     }
     reply.clearCookie('access-token').clearCookie('refresh-token');
     reply.send('user logged out');

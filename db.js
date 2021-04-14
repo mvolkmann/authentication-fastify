@@ -3,6 +3,8 @@ import mongo from 'mongodb';
 
 const {MongoClient} = mongo;
 
+const collectionMap = {};
+
 // Load environment variables from the .env file into process.env.
 dotenv.config();
 
@@ -27,5 +29,10 @@ export async function connect() {
 }
 
 export function getCollection(name) {
-  return client.db(process.env.MONGO_DB_NAME).collection(name);
+  let collection = collectionMap[name];
+  if (!collection) {
+    collection = client.db(process.env.MONGO_DB_NAME).collection(name);
+    collectionMap[name] = collection;
+  }
+  return collection;
 }

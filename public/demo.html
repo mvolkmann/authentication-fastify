@@ -13,7 +13,7 @@
       try {
         return fetch(path, {method: 'DELETE'});
       } catch (e) {
-        console.error(e);
+        console.error('deleteResource error:', e);
       }
     }
 
@@ -21,19 +21,23 @@
       try {
         return fetch(path);
       } catch (e) {
-        console.error(e);
+        console.error('getJson error:', e);
       }
     }
 
     async function postJson(path, body) {
       try {
-        return fetch(path, {
+        const res = await fetch(path, {
           method: 'POST',
           body: JSON.stringify(body),
           headers: {'Content-Type': 'application/json'}
         });
+        const isJson = res.headers['Content-Type'] === 'application/json';
+        const result = await (isJson ? res.json() : res.text());
+        if (res.ok) return result;
+        throw new Error(result);
       } catch (e) {
-        console.error(e);
+        console.error('postJson error:', e);
       }
     }
 
@@ -45,12 +49,14 @@
         await deleteResource('/api/user/' + encodeURIComponent(email));
         console.log('deleted user');
 
-        await postJson('/api/user', {email, password});
-        console.log('created user');
+        const id = await postJson('/api/user', {email, password});
+        console.log('created user with id', id);
 
-        await postJson('/api/login', {email, password});
-        console.log('logged in');
+        // Creating the user above automatically does login.
+        //await postJson('/api/login', {email, password});
+        //console.log('logged in');
 
+        //TODO: What should be passed to verify that the correct session is being logged out?
         await getJson('/api/logout', {});
         console.log('logged out');
       } catch (e) {

@@ -23,16 +23,15 @@ async function test(request, reply) {
   // but we are doing it manually to demonstrate the steps.
   try {
     const user = await getUser(request, reply);
-    console.log('index.js test route: user =', user);
 
     if (user?._id) {
-      reply.send(user);
+      reply.send('user session found');
     } else {
-      reply.send({data: 'user lookup failed'});
+      reply.status(400).send('no user session found');
     }
   } catch (e) {
     console.error(e);
-    throw new Error('error getting user');
+    throw new Error('error finding user session');
   }
 }
 
