@@ -80,9 +80,7 @@ export async function createUser(request, reply) {
 
     // After successfully creating a new user,
     // automatically log in.
-    await login(request, reply, true);
-
-    reply.send({userId: res.insertedId});
+    await login(request, reply);
   } catch (e) {
     reply.status(500).text(e.message);
   }
@@ -99,50 +97,41 @@ export async function deleteUser(request, reply) {
 }
 
 export async function getUser(request, reply) {
-  try {
-    const accessToken = request?.cookies?.['access-token'];
-    console.log('auth.js getUser: accessToken =', accessToken);
-    if (accessToken) {
-      const decodedAccessToken = jwt.verify(accessToken, JWT_SIGNATURE);
-      console.log('index.js getUser: decodedAccessToken =', decodedAccessToken);
+  const accessToken = request?.cookies?.['access-token'];
+  if (accessToken) {
+    const decodedAccessToken = jwt.verify(accessToken, JWT_SIGNATURE);
 
-      return getCollection('user').findOne({
-        _id: ObjectId(decodedAccessToken.userId)
-      });
-    } else {
-      const refreshToken = request?.cookies?.['refresh-token'];
-      console.log('auth.js getUser: refreshToken =', refreshToken);
-      if (refreshToken) {
-        //TODO: To test use of refresh token,
-        //TODO: delete the access - token cookie in DevTools.
-        const decodedRefreshToken = jwt.verify(refreshToken, JWT_SIGNATURE);
-        console.log(
-          'index.js getUser: decodedRefreshToken =',
-          decodedRefreshToken
-        );
-        const {sessionToken} = decodedRefreshToken;
-        const session = await getCollection('session').findOne({sessionToken});
-        if (session.valid) {
-          const user = await getCollection('user').findOne({
-            _id: ObjectId(session.userId)
-          });
-          if (!user) throw new Error('user not found');
-          await createTokens(session.userId, sessionToken, reply);
-          return user;
-        } else {
-          throw new Error('invalid session');
-        }
+    // Return the user.
+    return getCollection('user').findOne({
+      _id: ObjectId(decodedAccessToken.userId)
+    });
+  } else {
+    const refreshToken = request?.cookies?.['refresh-token'];
+    if (refreshToken) {
+      // Find the session associated with this refresh token.
+      const decodedRefreshToken = jwt.verify(refreshToken, JWT_SIGNATURE);
+      const {sessionToken} = decodedRefreshToken;
+      const session = await getCollection('session').findOne({sessionToken});
+      if (session.valid) {
+        // Find the user associated with this session.
+        const user = await getCollection('user').findOne({
+          _id: ObjectId(session.userId)
+        });
+        if (!user) throw new Error('user not found');
+
+        // Create new access and refresh tokens for this session.
+        await createTokens(session.userId, sessionToken, reply);
+        return user;
       } else {
-        throw new Error('no access token or refresh token found');
+        throw new Error('no valid session fond');
       }
+    } else {
+      throw new Error('no access token or refresh token found');
     }
-  } catch (e) {
-    console.error(e);
-    throw new Error('error getting user');
   }
 }
 
-export async function login(request, reply, skipSend) {
+export async function login(request, reply) {
   const {email, password} = request.body;
   try {
     const user = await getCollection('user').findOne({email});
@@ -156,7 +145,7 @@ export async function login(request, reply, skipSend) {
       };
       const sessionToken = await createSession(user._id, connection);
       await createTokens(user._id, sessionToken, reply);
-      if (!skipSend) reply.send('');
+      reply.send({userId: user._id});
     } else {
       reply.status(401).send('invalid email or password');
     }

@@ -31,7 +31,7 @@ async function test(request, reply) {
     }
   } catch (e) {
     console.error(e);
-    throw new Error('error finding user session');
+    throw new Error('failed to get session: ' + e.message);
   }
 }
 

@@ -21,9 +21,9 @@ export async function connect() {
     // Confirm the connection.
     await client.db('admin').command({ping: 1});
 
-    console.log('connected to MongoDB Atlas database');
+    console.info('connected to database');
   } catch (e) {
-    console.error(e);
+    console.error('error connecting to database:', e);
     await client.close();
   }
 }
