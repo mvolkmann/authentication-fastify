@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="ui.js"></script>
+  </head>
+  <body>
+    <h1>Authentication Demo</h1>
+
+    <form>
+      <div>
+        <label for="email">Email</label>
+        <input
+          id="email"
+          autocomplete="email"
+          value="r.mark.volkmann@gmail.com"
+        />
+      </div>
+      <div>
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          value="secret"
+        />
+      </div>
+      <div class="buttons">
+        <button id="register-btn" type="button">Register</button>
+        <button id="unregister-btn" type="button">Unregister</button>
+        <button id="login-btn" type="button">Login</button>
+        <button id="logout-btn" type="button">Logout</button>
+      </div>
+    </form>
+  </body>
+</html>

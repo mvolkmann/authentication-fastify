@@ -1,5 +1,6 @@
 import {fastify} from 'fastify';
 import fastifyCookie from 'fastify-cookie';
+import fastifyCors from 'fastify-cors';
 import fastifyStatic from 'fastify-static';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -37,6 +38,16 @@ async function test(request, reply) {
 
 async function startApp() {
   try {
+    // Add support for Cross Origin Resource Sharing.
+    app.register(fastifyCors, {
+      credentials: true, // required to return cookies
+      origin: [
+        // origin of requests from UI
+        /\.nodeauth\.dev$/,
+        'https://nodeauth.dev'
+      ]
+    });
+
     // Add support for setting and getting cookies.
     app.register(fastifyCookie, {
       secret: process.env.COOKIE_SIGNATURE
@@ -52,12 +63,12 @@ async function startApp() {
       reply.send('server has a heartbeat');
     });
 
-    app.post('/api/user', {}, createUser);
-    app.delete('/api/user/:email', {}, deleteUser);
-    app.post('/api/login', {}, login);
+    app.post('/user', {}, createUser);
+    app.delete('/user/:email', {}, deleteUser);
+    app.post('/login', {}, login);
     //TODO: Does this need to be a POST?
     //TODO: Verify that the /test route fails when called after logout.
-    app.get('/api/logout', {}, logout);
+    app.get('/logout', {}, logout);
 
     // This demonstrates implementing a protected route.
     app.get('/test', {}, test);

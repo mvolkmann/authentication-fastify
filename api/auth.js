@@ -12,12 +12,6 @@ const {compare, genSalt, hash} = bcrypt;
 
 const {ObjectId} = mongo;
 
-// Normally these names are defined by Node.js.
-// But when "type" is set to "module" in package.json,
-// these go away.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Load environment variables from the .env file into process.env.
 dotenv.config();
 const {JWT_SIGNATURE} = process.env;
@@ -56,12 +50,12 @@ export async function createSession(userId, connection) {
 export async function createTokens(userId, sessionToken, reply) {
   try {
     const accessToken = jwt.sign({userId, sessionToken}, JWT_SIGNATURE);
-    const refreshToken = jwt.sign({sessionToken}, JWT_SIGNATURE);
+    createCookie(reply, 'access-token', accessToken);
 
+    const refreshToken = jwt.sign({sessionToken}, JWT_SIGNATURE);
     const now = new Date();
-    const expires = now.setDate(now.getDate() + 7); // one week
-    createCookie(reply, 'access-token', accessToken, expires);
-    createCookie(reply, 'refresh-token', refreshToken);
+    const expires = now.setDate(now.getDate() + 7); // one week from now
+    createCookie(reply, 'refresh-token', refreshToken, expires);
   } catch (e) {
     console.error(e);
     throw new Error('error refreshing tokens');
@@ -83,7 +77,7 @@ export async function createUser(request, reply) {
     // automatically log in.
     await login(request, reply);
   } catch (e) {
-    reply.status(500).text(e.message);
+    reply.status(500).send(e.message);
   }
 }
 
@@ -152,20 +146,26 @@ export async function login(request, reply) {
       reply.status(401).send('invalid email or password');
     }
   } catch (e) {
-    reply.status(500).text(e.message);
+    reply.status(500).send(e.message);
   }
 }
 
 export async function logout(request, reply) {
+  console.log('auth.js logout: cookies =', request.cookies);
   try {
     const refreshToken = request?.cookies?.['refresh-token'];
+    console.log('auth.js logout: refreshToken =', refreshToken);
     if (refreshToken) {
+      // Delete the associated session.
       const decodedRefreshToken = jwt.verify(refreshToken, JWT_SIGNATURE);
       console.log('auth.js logout: decodedRefreshToken =', decodedRefreshToken);
       const {sessionToken} = decodedRefreshToken;
       await getCollection('session').deleteOne({sessionToken});
     }
+
+    // Clear both cookies for this session.
     reply.clearCookie('access-token').clearCookie('refresh-token');
+
     reply.send('user logged out');
   } catch (e) {
     console.error('auth.js logout:', e.message);

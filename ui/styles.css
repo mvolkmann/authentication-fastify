@@ -1,0 +1,28 @@
+body {
+  --label-width: 5rem;
+
+  background-color: linen;
+  font-family: sans-serif;
+}
+
+.buttons {
+  padding-left: calc(var(--label-width) + 4px);
+}
+
+div {
+  margin-bottom: 0.5rem;
+}
+
+input {
+  border: 1px solid lightgray;
+  border-radius: 4px;
+  padding: 0.5rem;
+  width: 15rem;
+}
+
+label {
+  box-sizing: border-box;
+  display: inline-block;
+  text-align: right;
+  width: var(--label-width);
+}
