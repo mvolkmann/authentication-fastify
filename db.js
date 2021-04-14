@@ -21,6 +21,10 @@ export async function connect() {
     // Confirm the connection.
     await client.db('admin').command({ping: 1});
 
+    // Create indexes on collections to make queries faster.
+    getCollection('session').createIndex('sessionToken');
+    getCollection('user').createIndex('email');
+
     console.info('connected to database');
   } catch (e) {
     console.error('error connecting to database:', e);
