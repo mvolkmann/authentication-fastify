@@ -21,3 +21,9 @@ To start the UI server which listens on port 5000:
 - `cd ui`
 - `npx serve`
 - browse nodeauth.dev, NOT localhost:5000!
+
+To register a new account, supply email and
+matching values for "Password" and "Confirm Password".
+
+To change password, login and supply email and
+matching values for "Confirm Password" and "New Password".
