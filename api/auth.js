@@ -83,7 +83,7 @@ export async function createUser(request, reply) {
 
     await sendVerifyEmail(email);
   } catch (e) {
-    reply.status(500).send(e.message);
+    reply.code(500).send(e.message);
   }
 }
 
@@ -93,9 +93,16 @@ export async function deleteUser(request, reply) {
     await getCollection('user').deleteMany({email});
     reply.send('user deleted');
   } catch (e) {
-    reply.status(500).send('error deleting user');
+    reply.code(500).send('error deleting user');
   }
   reply.send('');
+}
+
+function getEmailToken(email) {
+  return crypto
+    .createHash('sha256')
+    .update(`${process.env.JWT_SIGNATURE}:${email}`)
+    .digest('hex');
 }
 
 export async function getUser(request, reply) {
@@ -149,10 +156,10 @@ export async function login(request, reply) {
       await createTokens(user._id, sessionToken, reply);
       reply.send({userId: user._id});
     } else {
-      reply.status(401).send('invalid email or password');
+      reply.code(401).send('invalid email or password');
     }
   } catch (e) {
-    reply.status(500).send(e.message);
+    reply.code(500).send(e.message);
   }
 }
 
@@ -174,19 +181,16 @@ export async function logout(request, reply) {
     reply.send('user logged out');
   } catch (e) {
     console.error('auth.js logout:', e.message);
-    reply.status(500).send(e.message);
+    reply.code(500).send(e.message);
   }
 }
 
 export async function sendVerifyEmail(email) {
   try {
     const encodedEmail = encodeURIComponent(email);
-    const emailToken = crypto
-      .createHash('sha256')
-      .update(`${process.env.JWT_SIGNATURE}:${email}`)
-      .digest('hex');
+    const emailToken = getEmailToken(email);
     const domain = 'api.' + process.env.ROOT_DOMAIN;
-    const link = `https://${domain}/verify/${encodedEmail}${emailToken}`;
+    const link = `https://${domain}/verify/${encodedEmail}/${emailToken}`;
     const subject = 'Verify your account';
     const html =
       'Click the link below to verify your account.<br><br>' +
@@ -202,7 +206,10 @@ export async function sendEmail({from = FROM_EMAIL, to, subject, html}) {
     if (!mail) mail = await setupEmail();
 
     const info = await mail.sendMail({from, to, subject, html});
-    console.log('auth.js sendEmail: info =', info);
+    console.log(
+      'auth.js sendEmail: preview URL =',
+      nodemailer.getTestMessageUrl(info)
+    );
   } catch (e) {
     console.error('sendEmail error:', e);
   }
@@ -228,16 +235,19 @@ export async function setupEmail() {
 export async function verifyUser(request, reply) {
   const {email, token} = request.params;
   const unencodedEmail = decodeURIComponent(email);
-  console.log('auth.js verifyUser: email =', email);
-  console.log('auth.js verifyUser: token =', token);
-  try {
-    const user = await getCollection('user').findOne({email: unencodedEmail});
-    if (user) {
-      reply.send('verified user');
-    } else {
-      reply.status(400).send('verifying user failed');
+  const emailToken = getEmailToken(unencodedEmail);
+  if (token === emailToken) {
+    try {
+      await getCollection('user').updateOne(
+        {email: unencodedEmail},
+        {$set: {verified: true}}
+      );
+      reply.redirect('https://' + ROOT_DOMAIN); // goes to login page
+    } catch (e) {
+      console.error('verifyUser error:', e);
+      reply.code(500).send('error verifying user: ' + e.message);
     }
-  } catch (e) {
-    console.error('verifyAccount error:', e);
+  } else {
+    reply.code(401).send('verifying user failed');
   }
 }
