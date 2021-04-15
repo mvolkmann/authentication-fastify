@@ -26,6 +26,30 @@ const COOKIE_OPTIONS = {
 
 let mail;
 
+export async function changePassword(request, reply) {
+  const {email, oldPassword, newPassword} = request.body;
+  const unencodedEmail = decodeURIComponent(email);
+  const user = await getUser(request, reply);
+  console.log('auth.js changePassword: user =', user);
+
+  try {
+    const matches = await compare(oldPassword, user.password);
+    if (matches) {
+      const hashedPassword = await hashPassword(newPassword);
+      await getCollection('user').updateOne(
+        {email: unencodedEmail},
+        {$set: {password: hashedPassword}}
+      );
+      reply.send('changed password');
+    } else {
+      reply.code(400).send('invalid email or password');
+    }
+  } catch (e) {
+    console.error('changePassword error:', e);
+    reply.code(500).send('error changing password: ' + e.message);
+  }
+}
+
 function createCookie(reply, name, data, expires) {
   reply.setCookie(name, data, {...COOKIE_OPTIONS, expires});
 }
@@ -66,11 +90,15 @@ export async function createTokens(userId, sessionToken, reply) {
   }
 }
 
+async function hashPassword(password) {
+  const salt = await genSalt(); // defaults to 10 rounds
+  return hash(password, salt);
+}
+
 export async function createUser(request, reply) {
   const {email, password} = request.body;
   try {
-    const salt = await genSalt(); // defaults to 10 rounds
-    const hashedPassword = await hash(password, salt);
+    const hashedPassword = await hashPassword(password);
     const res = await getCollection('user').insertOne({
       email,
       password: hashedPassword,

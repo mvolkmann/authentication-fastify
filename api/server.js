@@ -6,6 +6,7 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 
 import {
+  changePassword,
   createUser,
   deleteUser,
   getUser,
@@ -71,6 +72,7 @@ async function startApp() {
       reply.send('server has a heartbeat');
     });
 
+    app.post('/user/password', {}, changePassword);
     app.post('/user', {}, createUser);
     app.delete('/user/:email', {}, deleteUser);
     app.post('/login', {}, login);
