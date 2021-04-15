@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import {randomBytes} from 'crypto'; // in Node.js
+import crypto, {randomBytes} from 'crypto'; // in Node.js
 import dotenv from 'dotenv';
 import mongo from 'mongodb';
 import nodemailer from 'nodemailer';
@@ -80,11 +80,7 @@ export async function createUser(request, reply) {
     // automatically log in.
     await login(request, reply);
 
-    sendEmail({
-      to: email,
-      subject: 'account created',
-      html: 'Please verify your account.'
-    });
+    await sendVerifyEmail(email);
   } catch (e) {
     reply.status(500).send(e.message);
   }
@@ -99,34 +95,6 @@ export async function deleteUser(request, reply) {
     reply.status(500).send('error deleting user');
   }
   reply.send('');
-}
-
-export async function sendEmail({from: FROM_EMAIL, to, subject, html}) {
-  try {
-    if (!mail) mail = await setupEmail();
-
-    const info = await mail.sendMail({from, to, subject, html});
-    console.log('auth.js sendEmail: info =', info);
-  } catch (e) {
-    console.error('sendEmail error:', e);
-  }
-}
-
-export async function setupEmail() {
-  try {
-    const testAccount = await nodemailer.createTestAccount();
-    return nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass
-      }
-    });
-  } catch (e) {
-    console.error('sendEmail error:', e);
-  }
 }
 
 export async function getUser(request, reply) {
@@ -207,5 +175,60 @@ export async function logout(request, reply) {
   } catch (e) {
     console.error('auth.js logout:', e.message);
     reply.status(500).send(e.message);
+  }
+}
+
+export async function sendVerifyEmail(email) {
+  try {
+    const encodedEmail = encodeURIComponent(email);
+    const emailToken = crypto
+      .createHash('sha256')
+      .update(`${process.env.JWT_SIGNATURE}:${email}`)
+      .digest('hex');
+    const link = `https://${process.env.ROOT_DOMAIN}/verify/${encodedEmail}${emailToken}`;
+    const subject = 'Verify your account';
+    const html =
+      'Click the link below to verify your account.<br><br>' +
+      `<a href="${link}">VERIFY</a>`;
+    await sendEmail({to: email, subject, html});
+  } catch (e) {
+    console.error('verifyAccount error:', e);
+  }
+}
+
+export async function sendEmail({from: FROM_EMAIL, to, subject, html}) {
+  try {
+    if (!mail) mail = await setupEmail();
+
+    const info = await mail.sendMail({from, to, subject, html});
+    console.log('auth.js sendEmail: info =', info);
+  } catch (e) {
+    console.error('sendEmail error:', e);
+  }
+}
+
+export async function setupEmail() {
+  try {
+    const testAccount = await nodemailer.createTestAccount();
+    return nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass
+      }
+    });
+  } catch (e) {
+    console.error('sendEmail error:', e);
+  }
+}
+
+export async function verifyUser(request, reply) {
+  console.log('auth.js verifyUser: request.params =', request.params);
+  try {
+    console.log('auth.js verifyUser: entered');
+  } catch (e) {
+    console.error('verifyAccount error:', e);
   }
 }

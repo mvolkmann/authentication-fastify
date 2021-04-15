@@ -1,7 +1,7 @@
 {
   "name": "auth",
   "version": "1.0.0",
-  "description": "Node-based authentication demo",
+  "description": "API for authentication-fastify project",
   "main": "server.js",
   "type": "module",
   "scripts": {

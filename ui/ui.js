@@ -73,7 +73,7 @@ async function register() {
     unregisterBtn.disabled = false;
     loginBtn.disabled = true;
     logoutBtn.disabled = false;
-    alert('Registered user with id ' + userId);
+    alert('Check your email for a link to verify your account.');
   } catch (e) {
     console.error('register error:', e);
   }

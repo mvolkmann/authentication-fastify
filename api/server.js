@@ -5,7 +5,14 @@ import fastifyStatic from 'fastify-static';
 import path from 'path';
 import {fileURLToPath} from 'url';
 
-import {createUser, deleteUser, getUser, login, logout} from './auth.js';
+import {
+  createUser,
+  deleteUser,
+  getUser,
+  login,
+  logout,
+  verifyUser
+} from './auth.js';
 import {connect} from './db.js';
 
 // Normally these names are defined by Node.js.
@@ -69,6 +76,7 @@ async function startApp() {
     //TODO: Does this need to be a POST?
     //TODO: Verify that the /test route fails when called after logout.
     app.get('/logout', {}, logout);
+    app.get('/verify', {}, verifyUser);
 
     // This demonstrates implementing a protected route.
     app.get('/test', {}, test);
