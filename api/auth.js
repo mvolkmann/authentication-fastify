@@ -15,18 +15,19 @@ const FROM_EMAIL = 'r.mark.volkmann@gmail.com';
 
 // Load environment variables from the .env file into process.env.
 dotenv.config();
-const {JWT_SIGNATURE} = process.env;
+const {JWT_SIGNATURE, ROOT_DOMAIN} = process.env;
+
+const COOKIE_OPTIONS = {
+  domain: ROOT_DOMAIN,
+  httpOnly: true,
+  path: '/',
+  secure: true
+};
 
 let mail;
 
 function createCookie(reply, name, data, expires) {
-  reply.setCookie(name, data, {
-    domain: process.env.ROOT_DOMAIN,
-    expires,
-    httpOnly: true,
-    path: '/',
-    secure: true
-  });
+  reply.setCookie(name, data, {...COOKIE_OPTIONS, expires});
 }
 
 export async function createSession(userId, connection) {
@@ -156,20 +157,19 @@ export async function login(request, reply) {
 }
 
 export async function logout(request, reply) {
-  console.log('auth.js logout: cookies =', request.cookies);
   try {
     const refreshToken = request?.cookies?.['refresh-token'];
-    console.log('auth.js logout: refreshToken =', refreshToken);
     if (refreshToken) {
       // Delete the associated session.
       const decodedRefreshToken = jwt.verify(refreshToken, JWT_SIGNATURE);
-      console.log('auth.js logout: decodedRefreshToken =', decodedRefreshToken);
       const {sessionToken} = decodedRefreshToken;
       await getCollection('session').deleteOne({sessionToken});
     }
 
     // Clear both cookies for this session.
-    reply.clearCookie('access-token').clearCookie('refresh-token');
+    reply
+      .clearCookie('access-token', COOKIE_OPTIONS)
+      .clearCookie('refresh-token', COOKIE_OPTIONS);
 
     reply.send('user logged out');
   } catch (e) {
@@ -185,7 +185,8 @@ export async function sendVerifyEmail(email) {
       .createHash('sha256')
       .update(`${process.env.JWT_SIGNATURE}:${email}`)
       .digest('hex');
-    const link = `https://${process.env.ROOT_DOMAIN}/verify/${encodedEmail}${emailToken}`;
+    const domain = 'api.' + process.env.ROOT_DOMAIN;
+    const link = `https://${domain}/verify/${encodedEmail}${emailToken}`;
     const subject = 'Verify your account';
     const html =
       'Click the link below to verify your account.<br><br>' +
@@ -196,7 +197,7 @@ export async function sendVerifyEmail(email) {
   }
 }
 
-export async function sendEmail({from: FROM_EMAIL, to, subject, html}) {
+export async function sendEmail({from = FROM_EMAIL, to, subject, html}) {
   try {
     if (!mail) mail = await setupEmail();
 
@@ -225,9 +226,17 @@ export async function setupEmail() {
 }
 
 export async function verifyUser(request, reply) {
-  console.log('auth.js verifyUser: request.params =', request.params);
+  const {email, token} = request.params;
+  const unencodedEmail = decodeURIComponent(email);
+  console.log('auth.js verifyUser: email =', email);
+  console.log('auth.js verifyUser: token =', token);
   try {
-    console.log('auth.js verifyUser: entered');
+    const user = await getCollection('user').findOne({email: unencodedEmail});
+    if (user) {
+      reply.send('verified user');
+    } else {
+      reply.status(400).send('verifying user failed');
+    }
   } catch (e) {
     console.error('verifyAccount error:', e);
   }

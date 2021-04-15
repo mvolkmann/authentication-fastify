@@ -49,7 +49,8 @@ async function startApp() {
     app.register(fastifyCors, {
       credentials: true, // required to return cookies
       origin: [
-        // origin of requests from UI
+        // origin of requests from UI;
+        // leading dot means to allow use in subdomains
         /\.nodeauth\.dev$/,
         'https://nodeauth.dev'
       ]
@@ -76,7 +77,7 @@ async function startApp() {
     //TODO: Does this need to be a POST?
     //TODO: Verify that the /test route fails when called after logout.
     app.get('/logout', {}, logout);
-    app.get('/verify', {}, verifyUser);
+    app.get('/verify/:email/:token', {}, verifyUser);
 
     // This demonstrates implementing a protected route.
     app.get('/test', {}, test);

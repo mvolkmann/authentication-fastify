@@ -20,4 +20,4 @@ To start the UI server which listens on port 5000:
 
 - `cd ui`
 - `npx serve`
-- browse nodeauth.dev
+- browse nodeauth.dev, NOT localhost:5000!

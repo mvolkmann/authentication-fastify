@@ -8,7 +8,10 @@ let unregisterBtn;
 
 async function deleteResource(path, body) {
   try {
-    return fetch(URL_PREFIX + path, {method: 'DELETE'});
+    return fetch(URL_PREFIX + path, {
+      credentials: 'include', // required to send cookies
+      method: 'DELETE'
+    });
   } catch (e) {
     console.error('deleteResource error:', e);
   }
@@ -16,7 +19,9 @@ async function deleteResource(path, body) {
 
 async function getJson(path) {
   try {
-    return fetch(URL_PREFIX + path);
+    return fetch(URL_PREFIX + path, {
+      credentials: 'include' // required to send cookies
+    });
   } catch (e) {
     console.error('getJson error:', e);
   }
@@ -27,7 +32,7 @@ async function postJson(path, body) {
     const res = await fetch(URL_PREFIX + path, {
       method: 'POST',
       body: JSON.stringify(body),
-      credentials: 'include', // required to receive cookies
+      credentials: 'include', // required to send cookies
       headers: {'Content-Type': 'application/json'}
     });
     const contentType = res.headers.get('Content-Type');
