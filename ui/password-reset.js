@@ -1,7 +1,7 @@
 const URL_PREFIX = 'https://api.nodeauth.dev/';
 
 let confirmPasswordInput;
-let newPasswordInput;
+let passwordInput;
 let resetPasswordBtn;
 
 async function postJson(path, body) {
@@ -21,12 +21,12 @@ async function postJson(path, body) {
 }
 
 async function resetPassword() {
-  const [, , email, token, expires] = window.location.pathname.split('/');
+  const [, , email, expires, token] = window.location.pathname.split('/');
   console.log('ui.js resetPassword: email =', email);
   console.log('ui.js resetPassword: expires =', expires);
   console.log('ui.js resetPassword: token =', token);
 
-  const password = newPasswordInput.value;
+  const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
   if (confirmPassword === password) {
     try {
@@ -46,7 +46,7 @@ async function resetPassword() {
 
 window.onload = () => {
   confirmPasswordInput = document.getElementById('confirm-password');
-  newPasswordInput = document.getElementById('new-password');
+  passwordInput = document.getElementById('password');
   resetPasswordBtn = document.getElementById('reset-password-btn');
 
   resetPasswordBtn.addEventListener('click', resetPassword);

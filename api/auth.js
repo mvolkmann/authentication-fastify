@@ -77,6 +77,14 @@ export async function createSession(userId, connection) {
   }
 }
 
+function createToken(...data) {
+  const delimiter = ':';
+  return crypto
+    .createHash('sha256')
+    .update(JWT_SIGNATURE + delimiter + data.join(delimiter))
+    .digest('hex');
+}
+
 export async function createTokens(userId, sessionToken, reply) {
   try {
     const accessToken = jwt.sign({userId, sessionToken}, JWT_SIGNATURE);
@@ -127,42 +135,26 @@ export async function forgotPassword(request, reply) {
   const {email} = request.params;
   try {
     const user = await getCollection('user').findOne({email});
-    if (!user) {
-      // Return a success status so bots cannot use this service
-      // to determine whether a user with a given email exists.
-      reply.send('');
-      return;
+    if (user) {
+      const domain = 'api.' + ROOT_DOMAIN;
+      const encodedEmail = encodeURIComponent(email);
+      const expires = Date.now() + ONE_DAY_MS;
+      const token = createToken(email, expires);
+      const link = `https://${domain}/user/reset/${encodedEmail}/${expires}/${token}`;
+      const subject = 'Reset your password';
+      const html =
+        'Click the link below to reset your password.<br><br>' +
+        `<a href="${link}">RESET PASSWORD</a>`;
+      await sendEmail({to: email, subject, html});
     }
 
-    const domain = 'api.' + ROOT_DOMAIN;
-    const encodedEmail = encodeURIComponent(email);
-    const expires = Date.now() + ONE_DAY_MS;
-    const token = getPasswordResetToken(email, expires);
-    const link = `https://${domain}/user/reset/${encodedEmail}/${token}/${expires}`;
-    const subject = 'Reset your password';
-    const html =
-      'Click the link below to reset your password.<br><br>' +
-      `<a href="${link}">RESET PASSWORD</a>`;
-    await sendEmail({to: email, subject, html});
-    reply.send('password reset email sent');
+    // Returning success status even if user doesn't exist
+    // so bots cannot use this service to
+    // determine whether a user with a given email exists.
+    reply.send();
   } catch (e) {
     reply.code(500).send('error sending password reset email');
   }
-}
-
-function getEmailToken(email) {
-  //TODO: Should this include expires like getPasswordResetToken?
-  return crypto
-    .createHash('sha256')
-    .update(JWT_SIGNATURE + ':' + email)
-    .digest('hex');
-}
-
-function getPasswordResetToken(email, expires) {
-  return crypto
-    .createHash('sha256')
-    .update(JWT_SIGNATURE + ':' + email + ':' + expires)
-    .digest('hex');
 }
 
 export async function getNewPassword(request, reply) {
@@ -178,7 +170,7 @@ export async function getNewPassword(request, reply) {
   }
   */
 
-  //const emailToken = getResetPasswordToken(email);
+  //const emailToken = createToken(email);
   //console.log('auth.js resetPassword: emailToken =', emailToken);
   //if (token === emailToken) {
   try {
@@ -293,7 +285,7 @@ export async function resetPassword(request, reply) {
   }
   */
 
-  //const emailToken = getResetPasswordToken(email);
+  //const emailToken = createToken(email);
   //console.log('auth.js resetPassword: emailToken =', emailToken);
   //if (token === emailToken) {
   try {
@@ -326,7 +318,7 @@ export async function sendEmail({from = FROM_EMAIL, to, subject, html}) {
 export async function sendVerifyEmail(email) {
   try {
     const encodedEmail = encodeURIComponent(email);
-    const emailToken = getEmailToken(email);
+    const emailToken = createToken(email);
     const domain = 'api.' + ROOT_DOMAIN;
     const link = `https://${domain}/verify/${encodedEmail}/${emailToken}`;
     const subject = 'Verify your account';
@@ -359,7 +351,7 @@ export async function setupEmail() {
 export async function verifyUser(request, reply) {
   const {email, token} = request.params;
   const unencodedEmail = decodeURIComponent(email);
-  const emailToken = getEmailToken(unencodedEmail);
+  const emailToken = createToken(unencodedEmail);
   if (token === emailToken) {
     try {
       await getCollection('user').updateOne(
