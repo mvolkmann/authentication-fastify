@@ -25,5 +25,11 @@ To start the UI server which listens on port 5000:
 To register a new account, supply email and
 matching values for "Password" and "Confirm Password".
 
-To change password, login and supply email and
-matching values for "Confirm Password" and "New Password".
+To change password, first login and then supply email and
+matching values for "Confirm Password" and "New Password"
+before pressing the "Change Password" button.
+
+To reset password when forgotten, supply email
+and press the "Forgot Password" button.
+This sends an email containing a "Reset Password" link.
+Click the link to go to a page where you can enter a new password.

@@ -3,6 +3,7 @@ const URL_PREFIX = 'https://api.nodeauth.dev/';
 let changePasswordBtn;
 let confirmPasswordInput;
 let emailInput;
+let forgotPasswordBtn;
 let loginBtn;
 let logoutBtn;
 let newPasswordInput;
@@ -25,6 +26,7 @@ async function changePassword() {
       alert('Password changed');
     } catch (e) {
       console.error('changePassword error:', e);
+      alert('Change Password failed');
     }
   } else {
     alert('Passwords do not match.');
@@ -36,6 +38,24 @@ async function deleteResource(path, body) {
     credentials: 'include', // required to send cookies
     method: 'DELETE'
   });
+}
+
+async function forgotPassword(event) {
+  const {style} = event.target;
+  console.log('ui.js forgotPassword: style.cursor =', style.cursor);
+  style.cursor = 'wait';
+
+  const email = emailInput.value;
+  try {
+    const res = await getJson(
+      'user/forgot-password/' + encodeURIComponent(email)
+    );
+    alert('Check your email for a link to reset your password.');
+    style.cursor = 'wait';
+  } catch (e) {
+    console.error('forgotPassword error:', e);
+    alert('Forgot Password failed');
+  }
 }
 
 async function getJson(path) {
@@ -66,6 +86,7 @@ async function logout() {
     alert('Logged out');
   } catch (e) {
     console.error('logout error:', e);
+    alert('Logout failed');
   }
 }
 
@@ -99,6 +120,7 @@ async function register() {
       alert('Check your email for a link to verify your account.');
     } catch (e) {
       console.error('register error:', e);
+      alert('Register failed');
     }
   } else {
     alert('Passwords do not match.');
@@ -114,6 +136,7 @@ async function unregister() {
     alert('Unregistered user');
   } catch (e) {
     console.error('unregister error:', e);
+    alert('Unregister failed');
   }
 }
 
@@ -121,6 +144,7 @@ window.onload = () => {
   changePasswordBtn = document.getElementById('change-password-btn');
   confirmPasswordInput = document.getElementById('confirm-password');
   emailInput = document.getElementById('email');
+  forgotPasswordBtn = document.getElementById('forgot-password-btn');
   loginBtn = document.getElementById('login-btn');
   logoutBtn = document.getElementById('logout-btn');
   newPasswordInput = document.getElementById('new-password');
@@ -131,6 +155,7 @@ window.onload = () => {
   logoutBtn.disabled = true;
 
   changePasswordBtn.addEventListener('click', changePassword);
+  forgotPasswordBtn.addEventListener('click', forgotPassword);
   loginBtn.addEventListener('click', login);
   logoutBtn.addEventListener('click', logout);
   registerBtn.addEventListener('click', register);

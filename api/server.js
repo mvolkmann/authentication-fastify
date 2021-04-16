@@ -9,9 +9,11 @@ import {
   changePassword,
   createUser,
   deleteUser,
+  forgotPassword,
   getUser,
   login,
   logout,
+  resetPassword,
   verifyUser
 } from './auth.js';
 import {connect} from './db.js';
@@ -72,6 +74,7 @@ async function startApp() {
       reply.send('server has a heartbeat');
     });
 
+    app.get('/user/forgot-password/:email', {}, forgotPassword);
     app.post('/user/password', {}, changePassword);
     app.post('/user', {}, createUser);
     app.delete('/user/:email', {}, deleteUser);
@@ -80,6 +83,7 @@ async function startApp() {
     //TODO: Verify that the /test route fails when called after logout.
     app.get('/logout', {}, logout);
     app.get('/verify/:email/:token', {}, verifyUser);
+    app.get('/user/reset/:email/:token', {}, resetPassword);
 
     // This demonstrates implementing a protected route.
     app.get('/test', {}, test);
