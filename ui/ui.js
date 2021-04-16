@@ -42,7 +42,6 @@ async function deleteResource(path, body) {
 
 async function forgotPassword(event) {
   const {style} = event.target;
-  console.log('ui.js forgotPassword: style.cursor =', style.cursor);
   style.cursor = 'wait';
 
   const email = emailInput.value;
@@ -51,10 +50,11 @@ async function forgotPassword(event) {
       'user/forgot-password/' + encodeURIComponent(email)
     );
     alert('Check your email for a link to reset your password.');
-    style.cursor = 'wait';
   } catch (e) {
     console.error('forgotPassword error:', e);
     alert('Forgot Password failed');
+  } finally {
+    style.cursor = 'default';
   }
 }
 

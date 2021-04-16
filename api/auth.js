@@ -127,7 +127,6 @@ export async function forgotPassword(request, reply) {
   const {email} = request.params;
   try {
     const user = await getCollection('user').findOne({email});
-    console.log('auth.js forgotPassword: user =', user);
     if (!user) {
       // Return a success status so bots cannot use this service
       // to determine whether a user with a given email exists.
@@ -137,8 +136,9 @@ export async function forgotPassword(request, reply) {
 
     const domain = 'api.' + ROOT_DOMAIN;
     const encodedEmail = encodeURIComponent(email);
-    const emailToken = getPasswordResetToken(email);
-    const link = `https://${domain}/user/reset/${encodedEmail}/${emailToken}`;
+    const expires = Date.now() + ONE_DAY_MS;
+    const token = getPasswordResetToken(email, expires);
+    const link = `https://${domain}/user/reset/${encodedEmail}/${token}/${expires}`;
     const subject = 'Reset your password';
     const html =
       'Click the link below to reset your password.<br><br>' +
@@ -158,12 +158,40 @@ function getEmailToken(email) {
     .digest('hex');
 }
 
-function getPasswordResetToken(email) {
-  const expires = Date.now() + ONE_DAY_MS;
+function getPasswordResetToken(email, expires) {
   return crypto
     .createHash('sha256')
     .update(JWT_SIGNATURE + ':' + email + ':' + expires)
     .digest('hex');
+}
+
+export async function getNewPassword(request, reply) {
+  //const {email, password, expires, token} = request.body;
+  const {email, token} = request.params;
+  console.log('auth.js resetPassword: email =', email);
+  console.log('auth.js resetPassword: token =', token);
+
+  /*
+  if (Date.now() > expires) {
+    reply.code(400).send('password reset expired');
+    return;
+  }
+  */
+
+  //const emailToken = getResetPasswordToken(email);
+  //console.log('auth.js resetPassword: emailToken =', emailToken);
+  //if (token === emailToken) {
+  try {
+    //const user = await getUser(request, reply);
+    //console.log('auth.js resetPassword: user =', user);
+    reply.redirect(`https://${ROOT_DOMAIN}/password-reset.html`);
+  } catch (e) {
+    console.error('resetPassword error:', e);
+    reply.code(500).send('error resetting password: ' + e.message);
+  }
+  //} else {
+  //  reply.code(401).send('password reset failed');
+  //}
 }
 
 export async function getUser(request, reply) {
@@ -252,9 +280,10 @@ export async function logout(request, reply) {
 }
 
 export async function resetPassword(request, reply) {
-  //const {email, password, expires, token} = request.body;
-  const {email, token} = request.params;
+  const {email, expires, password, token} = request.body;
   console.log('auth.js resetPassword: email =', email);
+  console.log('auth.js resetPassword: expires =', expires);
+  console.log('auth.js resetPassword: password =', password);
   console.log('auth.js resetPassword: token =', token);
 
   /*
@@ -270,7 +299,7 @@ export async function resetPassword(request, reply) {
   try {
     //const user = await getUser(request, reply);
     //console.log('auth.js resetPassword: user =', user);
-    reply.redirect(`https://${ROOT_DOMAIN}/password-reset.html`);
+    reply.redirect('https://' + ROOT_DOMAIN); // goes to login page
   } catch (e) {
     console.error('resetPassword error:', e);
     reply.code(500).send('error resetting password: ' + e.message);
