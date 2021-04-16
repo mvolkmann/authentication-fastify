@@ -278,19 +278,19 @@ export async function resetPassword(request, reply) {
   console.log('auth.js resetPassword: password =', password);
   console.log('auth.js resetPassword: token =', token);
 
-  /*
-  if (Date.now() > expires) {
+  const tokenValid = token === createToken(email, expires);
+
+  if (Date.now() > expires || !tokenValid) {
     reply.code(400).send('password reset expired');
     return;
   }
-  */
 
-  //const emailToken = createToken(email);
-  //console.log('auth.js resetPassword: emailToken =', emailToken);
-  //if (token === emailToken) {
   try {
-    //const user = await getUser(request, reply);
-    //console.log('auth.js resetPassword: user =', user);
+    const hashedPassword = await hashPassword(newPassword);
+    await getCollection('user').updateOne(
+      {email},
+      {$set: {password: hashedPassword}}
+    );
     reply.redirect('https://' + ROOT_DOMAIN); // goes to login page
   } catch (e) {
     console.error('resetPassword error:', e);
