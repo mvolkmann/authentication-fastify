@@ -264,10 +264,7 @@ export async function resetPassword(request, reply) {
       {email},
       {$set: {password: hashedPassword}}
     );
-    console.log('auth.js resetPassword: changed to', password);
-    console.log('auth.js resetPassword: ROOT_DOMAIN =', ROOT_DOMAIN);
-    //TODO: Why does the next line cause a CORS error?
-    reply.redirect('https://' + ROOT_DOMAIN); // goes to login page
+    reply.send('password reset');
   } catch (e) {
     console.error('resetPassword error:', e);
     reply.code(500).send('error resetting password: ' + e.message);

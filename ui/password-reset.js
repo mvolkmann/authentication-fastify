@@ -31,6 +31,7 @@ async function resetPassword() {
         token: params.get('token')
       });
       alert('Password reset');
+      location.href = '/'; // goes to login page
     } catch (e) {
       console.error('resetPassword error:', e);
       alert('Password reset failed');
