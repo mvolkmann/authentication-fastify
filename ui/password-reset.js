@@ -21,20 +21,16 @@ async function postJson(path, body) {
 }
 
 async function resetPassword() {
-  const [, , email, expires, token] = window.location.pathname.split('/');
-  console.log('ui.js resetPassword: email =', email);
-  console.log('ui.js resetPassword: expires =', expires);
-  console.log('ui.js resetPassword: token =', token);
-
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
   if (confirmPassword === password) {
+    const params = new URLSearchParams(window.location.search);
     try {
       await postJson('user/reset', {
-        email: decodeURIComponent(email),
-        expires,
+        email: decodeURIComponent(params.get('email')),
+        expires: params.get('expires'),
         password,
-        token
+        token: params.get('token')
       });
       alert('Password reset');
     } catch (e) {

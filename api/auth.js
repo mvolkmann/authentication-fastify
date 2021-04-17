@@ -136,11 +136,10 @@ export async function forgotPassword(request, reply) {
   try {
     const user = await getCollection('user').findOne({email});
     if (user) {
-      const domain = 'api.' + ROOT_DOMAIN;
       const encodedEmail = encodeURIComponent(email);
       const expires = Date.now() + ONE_DAY_MS;
       const token = createToken(email, expires);
-      const link = `https://${domain}/user/reset/${encodedEmail}/${expires}/${token}`;
+      const link = `https://${ROOT_DOMAIN}/password-reset.html?email=${encodedEmail}&expires=${expires}&token=${token}`;
       const subject = 'Reset your password';
       const html =
         'Click the link below to reset your password.<br><br>' +
@@ -158,32 +157,10 @@ export async function forgotPassword(request, reply) {
 }
 
 export async function getNewPassword(request, reply) {
-  //const {email, password, expires, token} = request.body;
-  const {email, token} = request.params;
-  console.log('auth.js resetPassword: email =', email);
-  console.log('auth.js resetPassword: token =', token);
-
-  /*
-  if (Date.now() > expires) {
-    reply.code(400).send('password reset expired');
-    return;
-  }
-  */
-
-  //const emailToken = createToken(email);
-  //console.log('auth.js resetPassword: emailToken =', emailToken);
-  //if (token === emailToken) {
-  try {
-    //const user = await getUser(request, reply);
-    //console.log('auth.js resetPassword: user =', user);
-    reply.redirect(`https://${ROOT_DOMAIN}/password-reset.html`);
-  } catch (e) {
-    console.error('resetPassword error:', e);
-    reply.code(500).send('error resetting password: ' + e.message);
-  }
-  //} else {
-  //  reply.code(401).send('password reset failed');
-  //}
+  const {email, expires, token} = request.params;
+  reply.redirect(
+    `https://${ROOT_DOMAIN}/password-reset.html/${email}/${expires}/${token}`
+  );
 }
 
 export async function getUser(request, reply) {
@@ -222,7 +199,8 @@ export async function getUser(request, reply) {
 }
 
 async function hashPassword(password) {
-  const salt = await genSalt(); // defaults to 10 rounds
+  // Defaults to 10 rounds. Using different value so it can't be guessed.
+  const salt = await genSalt(9);
   return hash(password, salt);
 }
 
@@ -286,7 +264,7 @@ export async function resetPassword(request, reply) {
   }
 
   try {
-    const hashedPassword = await hashPassword(newPassword);
+    const hashedPassword = await hashPassword(password);
     await getCollection('user').updateOne(
       {email},
       {$set: {password: hashedPassword}}

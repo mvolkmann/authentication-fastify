@@ -83,7 +83,7 @@ async function startApp() {
     //TODO: Verify that the /test route fails when called after logout.
     app.get('/logout', {}, logout);
     app.get('/verify/:email/:token', {}, verifyUser);
-    app.get('/user/reset/:email/:token', {}, getNewPassword);
+    app.get('/user/reset/:email/:expires/:token', {}, getNewPassword);
     app.post('/user/reset', {}, resetPassword);
 
     // This demonstrates implementing a protected route.
