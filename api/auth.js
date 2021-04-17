@@ -251,11 +251,6 @@ export async function logout(request, reply) {
 
 export async function resetPassword(request, reply) {
   const {email, expires, password, token} = request.body;
-  console.log('auth.js resetPassword: email =', email);
-  console.log('auth.js resetPassword: expires =', expires);
-  console.log('auth.js resetPassword: password =', password);
-  console.log('auth.js resetPassword: token =', token);
-
   const tokenValid = token === createToken(email, expires);
 
   if (Date.now() > expires || !tokenValid) {
@@ -269,6 +264,9 @@ export async function resetPassword(request, reply) {
       {email},
       {$set: {password: hashedPassword}}
     );
+    console.log('auth.js resetPassword: changed to', password);
+    console.log('auth.js resetPassword: ROOT_DOMAIN =', ROOT_DOMAIN);
+    //TODO: Why does the next line cause a CORS error?
     reply.redirect('https://' + ROOT_DOMAIN); // goes to login page
   } catch (e) {
     console.error('resetPassword error:', e);

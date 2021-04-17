@@ -99,9 +99,7 @@ async function postJson(path, body) {
   });
   const contentType = res.headers.get('Content-Type');
   const isJson = contentType && contentType.startsWith('application/json');
-  console.log('ui.js postJson: isJson =', isJson);
   const result = await (isJson ? res.json() : res.text());
-  console.log('ui.js postJson: result =', result);
   if (res.ok) return result;
   throw new Error(result);
 }
