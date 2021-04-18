@@ -14,6 +14,7 @@ import {
   getUser,
   getUserService,
   login,
+  login2FA,
   logout,
   register2FA,
   resetPassword,
@@ -89,6 +90,7 @@ async function startApp() {
     app.get('/user/reset/:email/:expires/:token', {}, getNewPassword);
     app.post('/user/reset', {}, resetPassword);
     app.post('/2fa/register', {}, register2FA);
+    app.post('/2fa/login', {}, login2FA);
 
     // This demonstrates implementing a protected route.
     app.get('/test', {}, test);

@@ -11,7 +11,15 @@ async function getJson(path) {
   const res = await fetch(URL_PREFIX + path, {
     credentials: 'include' // required to send cookies
   });
-  return res.ok ? res.json() : res.text();
+  const result = await getResult(res);
+  if (!res.ok) throw new Error(result);
+  return result;
+}
+
+function getResult(res) {
+  const contentType = res.headers.get('Content-Type');
+  const isJson = contentType && contentType.startsWith('application/json');
+  return isJson ? res.json() : res.text();
 }
 
 async function postJson(path, body) {
@@ -21,9 +29,7 @@ async function postJson(path, body) {
     credentials: 'include', // required to send cookies
     headers: {'Content-Type': 'application/json'}
   });
-  const contentType = res.headers.get('Content-Type');
-  const isJson = contentType && contentType.startsWith('application/json');
-  const result = await (isJson ? res.json() : res.text());
-  if (res.ok) return result;
-  throw new Error(result);
+  const result = await getResult(res);
+  if (!res.ok) throw new Error(result);
+  return result;
 }

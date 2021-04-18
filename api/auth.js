@@ -57,10 +57,16 @@ function createCookie(reply, name, data, expires) {
   reply.setCookie(name, data, {...COOKIE_OPTIONS, expires});
 }
 
-export async function createSession(userId, connection) {
+export async function createSession(request, reply, user) {
   //TODO: Why not use a UUID?
   const sessionToken = randomBytes(50).toString('hex'); // 50 is length
-  const {ip, userAgent} = connection;
+
+  //TODO: Add IP address to cookies and validate that
+  //TODO: subsequent requests come from that address?
+  const {ip} = request;
+  console.log('auth.js createSession: ip =', ip);
+
+  const userAgent = request.headers['user-agent'];
 
   try {
     await getCollection('session').insertOne({
@@ -68,10 +74,10 @@ export async function createSession(userId, connection) {
       sessionToken,
       updatedAt: new Date(),
       userAgent,
-      userId,
+      userId: user._id,
       valid: true
     });
-    return sessionToken;
+    await createTokens(user._id, sessionToken, reply);
   } catch (e) {
     console.error(e);
     throw new Error('session creation failed');
@@ -170,9 +176,10 @@ export async function getUser(request, reply) {
     const decodedAccessToken = jwt.verify(accessToken, JWT_SIGNATURE);
 
     // Return the user.
-    return getCollection('user').findOne({
+    const user = await getCollection('user').findOne({
       _id: ObjectId(decodedAccessToken.userId)
     });
+    return user;
   } else {
     const refreshToken = request?.cookies?.['refresh-token'];
     if (refreshToken) {
@@ -191,7 +198,7 @@ export async function getUser(request, reply) {
         await createTokens(session.userId, sessionToken, reply);
         return user;
       } else {
-        throw new Error('no valid session fond');
+        throw new Error('no valid session found');
       }
     } else {
       throw new Error('no access token or refresh token found');
@@ -218,22 +225,42 @@ export async function login(request, reply) {
   const {email, password} = request.body;
   try {
     const user = await getCollection('user').findOne({email});
-    const hashedPassword = user.password;
-    const matches = await compare(password, hashedPassword);
-
-    if (matches) {
-      const connection = {
-        ip: request.ip,
-        userAgent: request.headers['user-agent']
-      };
-      const sessionToken = await createSession(user._id, connection);
-      await createTokens(user._id, sessionToken, reply);
-      reply.send({userId: user._id});
+    if (user && verifyPassword(user, password)) {
+      if (user.secret) {
+        // Don't login until 2FA is provided.
+        reply.send({userId: user._id, status: '2FA'});
+      } else {
+        // 2FA is not enabled for this account, so login.
+        await createSession(request, reply, user);
+        //TODO: Why is the secret returned to the client?
+        reply.send({secret: user.secret, userId: user._id});
+      }
     } else {
       reply.code(401).send('invalid email or password');
     }
   } catch (e) {
     reply.code(500).send(e.message);
+  }
+}
+
+export async function login2FA(request, reply) {
+  const {code, email, password} = request.body;
+  try {
+    const user = await getCollection('user').findOne({email});
+    if (
+      user &&
+      verifyPassword(user, password) &&
+      verify2FA(user.secret, code)
+    ) {
+      await createSession(request, reply, user);
+      console.log('auth.js login2FA: authenticated');
+      reply.send();
+    } else {
+      reply.code(400).send('invalid 2FA code');
+    }
+  } catch (e) {
+    console.error('login2FA error:', e);
+    reply.code(500).send('error verifying 2FA: ' + e.message);
   }
 }
 
@@ -262,12 +289,11 @@ export async function logout(request, reply) {
 export async function register2FA(request, reply) {
   try {
     const user = await getUser(request, reply);
-    const {secret, token} = request.body;
-    const isValid = authenticator.verify({secret, token});
-    if (isValid) {
+    const {code, secret} = request.body;
+    if (verify2FA(secret, code)) {
       await getCollection('user').updateOne(
         {email: user.email},
-        {$set: {authenticator: secret}}
+        {$set: {secret}}
       );
       reply.send('registered for 2FA');
     } else {
@@ -351,6 +377,10 @@ export async function setupEmail() {
   }
 }
 
+function verify2FA(secret, code) {
+  return authenticator.verify({secret, token: code});
+}
+
 export async function verifyUser(request, reply) {
   const {email, token} = request.params;
   const unencodedEmail = decodeURIComponent(email);
@@ -369,4 +399,9 @@ export async function verifyUser(request, reply) {
   } else {
     reply.code(401).send('verifying user failed');
   }
+}
+
+function verifyPassword(user, password) {
+  const hashedPassword = user.password;
+  return compare(password, hashedPassword);
 }

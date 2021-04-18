@@ -11,15 +11,34 @@
     <script src="2fa.js"></script>
   </head>
   <body>
-    <h1>2FA</h1>
+    <h1>Configure Two-factor Authentication</h1>
+
+    <h2>Steps</h2>
+    <ol>
+      <li>
+        Install an authenticator app like Google Authenticator on your phone.
+      </li>
+      <li>Scan the QR code below with your phone camera.</li>
+      <li>Tap "Open in Authenticator".</li>
+      <li>When asked "Do you want to add the token ...", tap "Yes".</li>
+      <li>
+        Enter the code displayed in the authenticator app in the input below.
+      </li>
+      <li>Press the "Submit" button.</li>
+    </ol>
+
+    <p>
+      After following these steps, you will be asked to supply a code from your
+      authenticator app each time you login.
+    </p>
 
     <div id="qr-wrapper"></div>
 
     <!-- TODO: Make this use submit event so user can press enter to run. -->
     <form>
       <div>
-        <label for="token-input">Token</label>
-        <input id="token-input" required />
+        <label for="code-input">Code</label>
+        <input id="code-input" required />
       </div>
       <button id="submit-btn" type="button">Submit</button>
     </form>

@@ -7,6 +7,7 @@ let logoutBtn;
 let newPasswordInput;
 let passwordInput;
 let registerBtn;
+let submit2FABtn;
 let unregisterBtn;
 
 async function changePassword() {
@@ -54,9 +55,14 @@ async function login() {
   const password = passwordInput.value;
   try {
     const res = await postJson('login', {email, password});
-    loginBtn.disabled = true;
-    logoutBtn.disabled = false;
-    alert('Logged in');
+    if (res.status === '2FA') {
+      // 2FA is enabled
+      alert('Now authenticate with 2FA.');
+    } else {
+      loginBtn.disabled = true;
+      logoutBtn.disabled = false;
+      alert('Logged in');
+    }
   } catch (e) {
     console.error('login error:', e);
     alert('Login failed');
@@ -96,6 +102,21 @@ async function register() {
   }
 }
 
+async function submit2FA() {
+  const email = emailInput.value;
+  const password = passwordInput.value;
+  const code = code2FAInput.value;
+  try {
+    await postJson('2fa/login', {code, email, password});
+    loginBtn.disabled = true;
+    logoutBtn.disabled = false;
+    alert('Authenticated with 2FA');
+  } catch (e) {
+    console.error('submit2FA error:', e);
+    alert('Failed to authenticated with 2FA');
+  }
+}
+
 async function unregister() {
   const email = emailInput.value;
   try {
@@ -111,6 +132,7 @@ async function unregister() {
 
 window.onload = () => {
   changePasswordBtn = document.getElementById('change-password-btn');
+  code2FAInput = document.getElementById('code-2fa-input');
   confirmPasswordInput = document.getElementById('confirm-password');
   emailInput = document.getElementById('email');
   forgotPasswordBtn = document.getElementById('forgot-password-btn');
@@ -119,6 +141,7 @@ window.onload = () => {
   newPasswordInput = document.getElementById('new-password');
   passwordInput = document.getElementById('password');
   registerBtn = document.getElementById('register-btn');
+  submit2FABtn = document.getElementById('submit-2fa-btn');
   unregisterBtn = document.getElementById('unregister-btn');
 
   logoutBtn.disabled = true;
@@ -128,5 +151,6 @@ window.onload = () => {
   loginBtn.addEventListener('click', login);
   logoutBtn.addEventListener('click', logout);
   registerBtn.addEventListener('click', register);
+  submit2FABtn.addEventListener('click', submit2FA);
   unregisterBtn.addEventListener('click', unregister);
 };

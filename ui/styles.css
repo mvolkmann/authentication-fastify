@@ -9,12 +9,16 @@ body {
 }
 
 button {
-  background-color: darkgray;
+  background-color: cornflowerblue;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   color: white;
   font-size: 1rem;
   padding: 0.5rem;
+}
+
+button:disabled {
+  background-color: darkgray;
 }
 
 .buttons {
