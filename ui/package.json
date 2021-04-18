@@ -8,6 +8,8 @@
   "author": "R. Mark Volkmann",
   "license": "MIT",
   "dependencies": {
-    "http-server": "^0.12.3"
+    "@otplib/preset-browser": "^12.0.1",
+    "http-server": "^0.12.3",
+    "qrcode": "^1.4.4"
   }
 }

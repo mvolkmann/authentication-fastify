@@ -1,3 +1,4 @@
+import {authenticator} from '@otplib/preset-default';
 import bcrypt from 'bcryptjs';
 import crypto, {randomBytes} from 'crypto'; // in Node.js
 import dotenv from 'dotenv';
@@ -198,6 +199,15 @@ export async function getUser(request, reply) {
   }
 }
 
+export async function getUserService(request, reply) {
+  const user = await getUser(request, reply);
+  if (user) {
+    reply.send(user);
+  } else {
+    reply.code(404).send({});
+  }
+}
+
 async function hashPassword(password) {
   // Defaults to 10 rounds. Using different value so it can't be guessed.
   const salt = await genSalt(9);
@@ -246,6 +256,26 @@ export async function logout(request, reply) {
   } catch (e) {
     console.error('auth.js logout:', e.message);
     reply.code(500).send(e.message);
+  }
+}
+
+export async function register2FA(request, reply) {
+  try {
+    const user = await getUser(request, reply);
+    const {secret, token} = request.body;
+    const isValid = authenticator.verify({secret, token});
+    if (isValid) {
+      await getCollection('user').updateOne(
+        {email: user.email},
+        {$set: {authenticator: secret}}
+      );
+      reply.send('registered for 2FA');
+    } else {
+      reply.code(401).send();
+    }
+  } catch (e) {
+    console.error('auth.js register2fa: error =', e);
+    reply.code(500).send('error registering 2FA: ' + e.message);
   }
 }
 

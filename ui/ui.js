@@ -1,5 +1,3 @@
-const URL_PREFIX = 'https://api.nodeauth.dev/';
-
 let changePasswordBtn;
 let confirmPasswordInput;
 let emailInput;
@@ -33,13 +31,6 @@ async function changePassword() {
   }
 }
 
-async function deleteResource(path, body) {
-  return fetch(URL_PREFIX + path, {
-    credentials: 'include', // required to send cookies
-    method: 'DELETE'
-  });
-}
-
 async function forgotPassword(event) {
   const {style} = event.target;
   style.cursor = 'wait';
@@ -56,12 +47,6 @@ async function forgotPassword(event) {
   } finally {
     style.cursor = 'default';
   }
-}
-
-async function getJson(path) {
-  return fetch(URL_PREFIX + path, {
-    credentials: 'include' // required to send cookies
-  });
 }
 
 async function login() {
@@ -88,20 +73,6 @@ async function logout() {
     console.error('logout error:', e);
     alert('Logout failed');
   }
-}
-
-async function postJson(path, body) {
-  const res = await fetch(URL_PREFIX + path, {
-    method: 'POST',
-    body: JSON.stringify(body),
-    credentials: 'include', // required to send cookies
-    headers: {'Content-Type': 'application/json'}
-  });
-  const contentType = res.headers.get('Content-Type');
-  const isJson = contentType && contentType.startsWith('application/json');
-  const result = await (isJson ? res.json() : res.text());
-  if (res.ok) return result;
-  throw new Error(result);
 }
 
 async function register() {

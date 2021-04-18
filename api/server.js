@@ -12,8 +12,10 @@ import {
   forgotPassword,
   getNewPassword,
   getUser,
+  getUserService,
   login,
   logout,
+  register2FA,
   resetPassword,
   verifyUser
 } from './auth.js';
@@ -75,6 +77,7 @@ async function startApp() {
       reply.send('server has a heartbeat');
     });
 
+    app.get('/user', {}, getUserService);
     app.get('/user/forgot-password/:email', {}, forgotPassword);
     app.post('/user/password', {}, changePassword);
     app.post('/user', {}, createUser);
@@ -85,6 +88,7 @@ async function startApp() {
     app.get('/verify/:email/:token', {}, verifyUser);
     app.get('/user/reset/:email/:expires/:token', {}, getNewPassword);
     app.post('/user/reset', {}, resetPassword);
+    app.post('/2fa/register', {}, register2FA);
 
     // This demonstrates implementing a protected route.
     app.get('/test', {}, test);

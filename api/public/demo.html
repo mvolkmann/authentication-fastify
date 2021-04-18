@@ -3,44 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="fetch-util.js"></script>
   </head>
   <body>
     Check the DevTools console.
   </body>
 
   <script>
-    async function deleteResource(path, body) {
-      try {
-        return fetch(path, {method: 'DELETE'});
-      } catch (e) {
-        console.error('deleteResource error:', e);
-      }
-    }
-
-    async function getJson(path) {
-      try {
-        return fetch(path);
-      } catch (e) {
-        console.error('getJson error:', e);
-      }
-    }
-
-    async function postJson(path, body) {
-      try {
-        const res = await fetch(path, {
-          method: 'POST',
-          body: JSON.stringify(body),
-          headers: {'Content-Type': 'application/json'}
-        });
-        const isJson = res.headers['Content-Type'] === 'application/json';
-        const result = await (isJson ? res.json() : res.text());
-        if (res.ok) return result;
-        throw new Error(result);
-      } catch (e) {
-        console.error('postJson error:', e);
-      }
-    }
-
     async function demo() {
       const email = 'r.mark.volkmann@gmail.com';
       const password = 'secret';
