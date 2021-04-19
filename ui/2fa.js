@@ -2,10 +2,18 @@ window.onload = setup;
 
 let secret;
 
-async function register2FA() {
-  const codeInput = document.getElementById('code-input');
+function getValue(id) {
+  return document.getElementById(id).value;
+}
+
+async function register2FA(event) {
+  event.preventDefault();
+
+  const code = getValue('code');
+  console.log('2fa.js register2FA: code =', code);
+  console.log('2fa.js register2FA: secret =', secret);
   try {
-    await postJson('2fa/register', {code: codeInput.value, secret});
+    await postJson('2fa/register', {code, secret});
     alert('Two-factor authentication has been enabled for this account.');
     location.href = '/'; // return to login page
   } catch (e) {
@@ -15,8 +23,8 @@ async function register2FA() {
 }
 
 async function setup() {
-  const submitBtn = document.getElementById('submit-btn');
-  submitBtn.addEventListener('click', register2FA);
+  const form = document.querySelector('form');
+  form.addEventListener('submit', register2FA);
 
   try {
     const user = await getJson('user');
