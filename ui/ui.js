@@ -8,28 +8,23 @@ async function changePassword() {
       oldPassword,
       newPassword
     });
-    alert('Password changed');
+    return 'Password changed';
   } catch (e) {
     console.error('changePassword error:', e);
-    alert('Change Password failed');
+    throw new Error('Change Password failed');
   }
 }
 
 async function forgotPassword(event) {
-  const {style} = event.target;
-  style.cursor = 'wait';
-
   const email = getValue('forgot-password-email');
   try {
     const res = await getJson(
       'user/forgot-password/' + encodeURIComponent(email)
     );
-    alert('Check your email for a link to reset your password.');
+    return 'Check your email for a link to reset your password.';
   } catch (e) {
     console.error('forgotPassword error:', e);
-    alert('Forgot Password failed');
-  } finally {
-    style.cursor = 'default';
+    throw new Error('Forgot Password failed');
   }
 }
 
@@ -44,14 +39,13 @@ async function login() {
     const res = await postJson('login', {email, password});
     if (res.status === '2FA') {
       // 2FA is enabled
-      alert('Now authenticate with 2FA.');
+      return 'Now authenticate with 2FA.';
     } else {
       setLoggedIn(true);
-      alert('Logged in');
     }
   } catch (e) {
     console.error('login error:', e);
-    alert('Login failed');
+    throw new Error('Login failed');
   }
 }
 
@@ -62,10 +56,10 @@ async function login2FA() {
   try {
     await postJson('2fa/login', {code, email, password});
     setLoggedIn(true);
-    alert('Authenticated with 2FA');
+    return 'Authenticated with 2FA';
   } catch (e) {
     console.error('submit2FA error:', e);
-    alert('Failed to authenticated with 2FA');
+    throw new Error('Failed to authenticated with 2FA');
   }
 }
 
@@ -73,17 +67,24 @@ async function logout() {
   try {
     await getJson('logout', {});
     setLoggedIn(false);
-    alert('Logged out');
   } catch (e) {
     console.error('logout error:', e);
-    alert('Logout failed');
+    throw new Error('Logout failed');
   }
 }
 
 function onSubmit(formId, handler) {
-  document.getElementById(formId).addEventListener('submit', event => {
+  document.getElementById(formId).addEventListener('submit', async event => {
+    setCursor(event.target, 'wait');
     event.preventDefault();
-    handler(event);
+    try {
+      const message = await handler(event);
+      if (message) alert(message);
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setCursor(event.target, 'default');
+    }
   });
 }
 
@@ -95,13 +96,21 @@ async function register() {
     try {
       const {userId} = await postJson('user', {email, password});
       setLoggedIn(true);
-      alert('Check your email for a link to verify your account.');
+      return 'Check your email for a link to verify your account.';
     } catch (e) {
       console.error('register error:', e);
-      alert('Register failed');
+      throw new Error('Register failed');
     }
   } else {
-    alert('Passwords do not match.');
+    throw new Error('Passwords do not match.');
+  }
+}
+
+function setCursor(form, cursor) {
+  document.body.style.cursor = cursor;
+  const buttons = form.querySelectorAll('button');
+  for (const button of buttons) {
+    button.style.cursor = cursor;
   }
 }
 
@@ -137,15 +146,17 @@ function setLoggedIn(loggedIn) {
 }
 
 async function unregister() {
+  //TODO: Should this only use the email of the currently logged in user?
   const email = getValue('unregister-email');
-  const password = getValue('unregister-password');
+  console.log('ui.js unregister: email =', email);
   try {
-    //TODO: Call a service that verifies the password before deleting the account.
+    await logout();
     await deleteResource('user/' + encodeURIComponent(email));
-    alert('Unregistered user');
+    //setLoggedIn(false);
+    return 'Unregistered user';
   } catch (e) {
     console.error('unregister error:', e);
-    alert('Unregister failed');
+    throw new Error('Unregister failed');
   }
 }
 
