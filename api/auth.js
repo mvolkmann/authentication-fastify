@@ -39,8 +39,6 @@ export async function changePassword(request, reply) {
       const hashedPassword = await hashPassword(newPassword);
       await getCollection('user').updateOne(
         {email: unencodedEmail},
-        //TODO: Why doesn't this work as an alternative to email lookup?
-        //{_id: user.id},
         {$set: {password: hashedPassword}}
       );
       reply.send('changed password');
@@ -58,7 +56,7 @@ function createCookie(reply, name, data, expires) {
 }
 
 export async function createSession(request, reply, user) {
-  //TODO: Why not use a UUID?
+  // Could use a UUID created by the npm package "uuid" instead.
   const sessionToken = randomBytes(50).toString('hex'); // 50 is length
 
   //TODO: Add IP address to cookies and validate that
@@ -127,6 +125,17 @@ export async function createUser(request, reply) {
   }
 }
 
+export async function deleteCurrentUser(request, reply) {
+  const user = await getUser(request, reply);
+  try {
+    await getCollection('user').deleteMany({email: user.email});
+    reply.send('user deleted');
+  } catch (e) {
+    reply.code(500).send('error deleting user');
+  }
+}
+
+/* This is dangerous because it allows any user to delete any other user.
 export async function deleteUser(request, reply) {
   const {email} = request.params;
   try {
@@ -135,8 +144,8 @@ export async function deleteUser(request, reply) {
   } catch (e) {
     reply.code(500).send('error deleting user');
   }
-  reply.send('');
 }
+*/
 
 export async function forgotPassword(request, reply) {
   const {email} = request.params;
@@ -232,8 +241,7 @@ export async function login(request, reply) {
       } else {
         // 2FA is not enabled for this account, so login.
         await createSession(request, reply, user);
-        //TODO: Why is the secret returned to the client?
-        reply.send({secret: user.secret, userId: user._id});
+        reply.send();
       }
     } else {
       reply.code(401).send('invalid email or password');

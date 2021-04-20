@@ -146,13 +146,9 @@ function setLoggedIn(loggedIn) {
 }
 
 async function unregister() {
-  //TODO: Should this only use the email of the currently logged in user?
-  const email = getValue('unregister-email');
-  console.log('ui.js unregister: email =', email);
   try {
-    await logout();
-    await deleteResource('user/' + encodeURIComponent(email));
-    //setLoggedIn(false);
+    await deleteResource('user'); // deletes current user
+    await logout(); // deletes current session
     return 'Unregistered user';
   } catch (e) {
     console.error('unregister error:', e);

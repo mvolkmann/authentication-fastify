@@ -8,7 +8,8 @@ import {fileURLToPath} from 'url';
 import {
   changePassword,
   createUser,
-  deleteUser,
+  deleteCurrentUser,
+  //deleteUser,
   forgotPassword,
   getNewPassword,
   getUser,
@@ -82,7 +83,8 @@ async function startApp() {
     app.get('/user/forgot-password/:email', {}, forgotPassword);
     app.post('/user/password', {}, changePassword);
     app.post('/user', {}, createUser);
-    app.delete('/user/:email', {}, deleteUser);
+    app.delete('/user', {}, deleteCurrentUser);
+    //app.delete('/user/:email', {}, deleteUser);
     app.post('/login', {}, login);
     //TODO: Verify that the /test route fails when called after logout.
     app.get('/logout', {}, logout);
