@@ -1,34 +1,17 @@
-let changePasswordBtn;
-let confirmPasswordInput;
-let emailInput;
-let forgotPasswordBtn;
-let loginBtn;
-let logoutBtn;
-let newPasswordInput;
-let passwordInput;
-let registerBtn;
-let submit2FABtn;
-let unregisterBtn;
-
 async function changePassword() {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  const confirmPassword = confirmPasswordInput.value;
-  const newPassword = newPasswordInput.value;
-  if (newPassword === confirmPassword) {
-    try {
-      await postJson('user/password', {
-        email,
-        oldPassword: password,
-        newPassword
-      });
-      alert('Password changed');
-    } catch (e) {
-      console.error('changePassword error:', e);
-      alert('Change Password failed');
-    }
-  } else {
-    alert('Passwords do not match.');
+  const email = getValue('change-password-email');
+  const oldPassword = getValue('change-password-old-password');
+  const newPassword = getValue('change-password-new-password');
+  try {
+    await postJson('user/password', {
+      email,
+      oldPassword,
+      newPassword
+    });
+    alert('Password changed');
+  } catch (e) {
+    console.error('changePassword error:', e);
+    alert('Change Password failed');
   }
 }
 
@@ -36,7 +19,7 @@ async function forgotPassword(event) {
   const {style} = event.target;
   style.cursor = 'wait';
 
-  const email = emailInput.value;
+  const email = getValue('forgot-password-email');
   try {
     const res = await getJson(
       'user/forgot-password/' + encodeURIComponent(email)
@@ -50,17 +33,20 @@ async function forgotPassword(event) {
   }
 }
 
+function getValue(id) {
+  return document.getElementById(id).value;
+}
+
 async function login() {
-  const email = emailInput.value;
-  const password = passwordInput.value;
+  const email = getValue('login-email');
+  const password = getValue('login-password');
   try {
     const res = await postJson('login', {email, password});
     if (res.status === '2FA') {
       // 2FA is enabled
       alert('Now authenticate with 2FA.');
     } else {
-      loginBtn.disabled = true;
-      logoutBtn.disabled = false;
+      setLoggedIn(true);
       alert('Logged in');
     }
   } catch (e) {
@@ -69,11 +55,24 @@ async function login() {
   }
 }
 
+async function login2FA() {
+  const email = getValue('login-email');
+  const password = getValue('login-password');
+  const code = getValue('login-2fa-code');
+  try {
+    await postJson('2fa/login', {code, email, password});
+    setLoggedIn(true);
+    alert('Authenticated with 2FA');
+  } catch (e) {
+    console.error('submit2FA error:', e);
+    alert('Failed to authenticated with 2FA');
+  }
+}
+
 async function logout() {
   try {
     await getJson('logout', {});
-    loginBtn.disabled = false;
-    logoutBtn.disabled = true;
+    setLoggedIn(false);
     alert('Logged out');
   } catch (e) {
     console.error('logout error:', e);
@@ -81,17 +80,21 @@ async function logout() {
   }
 }
 
+function onSubmit(formId, handler) {
+  document.getElementById(formId).addEventListener('submit', event => {
+    event.preventDefault();
+    handler(event);
+  });
+}
+
 async function register() {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  const confirmPassword = confirmPasswordInput.value;
+  const email = getValue('register-email');
+  const password = getValue('register-password');
+  const confirmPassword = getValue('register-confirm-password');
   if (confirmPassword === password) {
     try {
       const {userId} = await postJson('user', {email, password});
-      registerBtn.disabled = true;
-      unregisterBtn.disabled = false;
-      loginBtn.disabled = true;
-      logoutBtn.disabled = false;
+      setLoggedIn(true);
       alert('Check your email for a link to verify your account.');
     } catch (e) {
       console.error('register error:', e);
@@ -102,27 +105,43 @@ async function register() {
   }
 }
 
-async function submit2FA() {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  const code = code2FAInput.value;
-  try {
-    await postJson('2fa/login', {code, email, password});
-    loginBtn.disabled = true;
-    logoutBtn.disabled = false;
-    alert('Authenticated with 2FA');
-  } catch (e) {
-    console.error('submit2FA error:', e);
-    alert('Failed to authenticated with 2FA');
+function setLoggedIn(loggedIn) {
+  const changePassword = document.querySelector('form#change-password');
+  const enable2FA = document.querySelector('form#enable-2fa');
+  const forgotPassword = document.querySelector('form#forgot-password');
+  const login = document.querySelector('form#login');
+  const login2FA = document.querySelector('form#login-2fa');
+  const logout = document.querySelector('form#logout');
+  const unregister = document.querySelector('form#unregister');
+
+  const hide = element => (element.style.display = 'none');
+  const show = element => (element.style.display = 'block');
+
+  if (loggedIn) {
+    hide(forgotPassword);
+    hide(login);
+    hide(login2FA);
+    show(changePassword);
+    show(enable2FA);
+    show(logout);
+    show(unregister);
+  } else {
+    hide(changePassword);
+    hide(enable2FA);
+    hide(logout);
+    hide(unregister);
+    show(forgotPassword);
+    show(login);
+    show(login2FA);
   }
 }
 
 async function unregister() {
-  const email = emailInput.value;
+  const email = getValue('unregister-email');
+  const password = getValue('unregister-password');
   try {
+    //TODO: Call a service that verifies the password before deleting the account.
     await deleteResource('user/' + encodeURIComponent(email));
-    registerBtn.disabled = false;
-    unregisterBtn.disabled = true;
     alert('Unregistered user');
   } catch (e) {
     console.error('unregister error:', e);
@@ -131,26 +150,13 @@ async function unregister() {
 }
 
 window.onload = () => {
-  changePasswordBtn = document.getElementById('change-password-btn');
-  code2FAInput = document.getElementById('code-2fa-input');
-  confirmPasswordInput = document.getElementById('confirm-password');
-  emailInput = document.getElementById('email');
-  forgotPasswordBtn = document.getElementById('forgot-password-btn');
-  loginBtn = document.getElementById('login-btn');
-  logoutBtn = document.getElementById('logout-btn');
-  newPasswordInput = document.getElementById('new-password');
-  passwordInput = document.getElementById('password');
-  registerBtn = document.getElementById('register-btn');
-  submit2FABtn = document.getElementById('submit-2fa-btn');
-  unregisterBtn = document.getElementById('unregister-btn');
+  onSubmit('change-password', changePassword);
+  onSubmit('login', login);
+  onSubmit('logout', logout);
+  onSubmit('register', register);
+  onSubmit('unregister', unregister);
+  onSubmit('forgot-password', forgotPassword);
+  onSubmit('login-2fa', login2FA);
 
-  logoutBtn.disabled = true;
-
-  changePasswordBtn.addEventListener('click', changePassword);
-  forgotPasswordBtn.addEventListener('click', forgotPassword);
-  loginBtn.addEventListener('click', login);
-  logoutBtn.addEventListener('click', logout);
-  registerBtn.addEventListener('click', register);
-  submit2FABtn.addEventListener('click', submit2FA);
-  unregisterBtn.addEventListener('click', unregister);
+  setLoggedIn(false);
 };

@@ -2,16 +2,18 @@ let confirmPasswordInput;
 let passwordInput;
 let resetPasswordBtn;
 
-async function resetPassword() {
-  const password = passwordInput.value;
-  const confirmPassword = confirmPasswordInput.value;
-  if (confirmPassword === password) {
+async function resetPassword(event) {
+  event.preventDefault();
+
+  const newPassword = getValue('new-password');
+  const confirmPassword = getValue('confirm-password');
+  if (confirmPassword === newPassword) {
     const params = new URLSearchParams(window.location.search);
     try {
       await postJson('user/reset', {
         email: decodeURIComponent(params.get('email')),
         expires: params.get('expires'),
-        password,
+        password: newPassword,
         token: params.get('token')
       });
       alert('Password reset');
@@ -24,9 +26,6 @@ async function resetPassword() {
 }
 
 window.onload = () => {
-  confirmPasswordInput = document.getElementById('confirm-password');
-  passwordInput = document.getElementById('password');
-  resetPasswordBtn = document.getElementById('reset-password-btn');
-
-  resetPasswordBtn.addEventListener('click', resetPassword);
+  const form = document.querySelector('form');
+  form.addEventListener('submit', resetPassword);
 };

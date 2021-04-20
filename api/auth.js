@@ -225,7 +225,7 @@ export async function login(request, reply) {
   const {email, password} = request.body;
   try {
     const user = await getCollection('user').findOne({email});
-    if (user && verifyPassword(user, password)) {
+    if (user && (await verifyPassword(user, password))) {
       if (user.secret) {
         // Don't login until 2FA is provided.
         reply.send({userId: user._id, status: '2FA'});
@@ -290,7 +290,7 @@ export async function register2FA(request, reply) {
   try {
     const user = await getUser(request, reply);
     const {code, secret} = request.body;
-    if (verify2FA(secret, code)) {
+    if (user && verify2FA(secret, code)) {
       await getCollection('user').updateOne(
         {email: user.email},
         {$set: {secret}}
@@ -403,5 +403,5 @@ export async function verifyUser(request, reply) {
 
 function verifyPassword(user, password) {
   const hashedPassword = user.password;
-  return compare(password, hashedPassword);
+  return compare(password, hashedPassword); // returns a Promise
 }

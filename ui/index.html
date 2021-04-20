@@ -10,56 +10,149 @@
   <body>
     <h1>Account Management Demo</h1>
 
-    <form>
+    <form id="register">
+      <h2>Register</h2>
       <div>
-        <label for="email">Email</label>
+        <label for="register-email">Email</label>
         <input
-          id="email"
+          autocomplete="email"
+          id="register-email"
+          required
+          type="email"
+          value="r.mark.volkmann@gmail.com"
+        />
+      </div>
+      <div>
+        <label for="register-password">Password</label>
+        <input
+          autocomplete="current-password"
+          id="register-password"
+          required
+          type="password"
+          value="secret"
+        />
+      </div>
+      <div>
+        <label for="register-confirm-password">Confirm Password</label>
+        <input
+          autocomplete="current-password"
+          id="register-confirm-password"
+          required
+          type="password"
+          value="secret"
+        />
+      </div>
+      <button>Register</button>
+    </form>
+
+    <form id="enable-2fa">
+      <h2>Enable Two-factor Authentication</h2>
+      <a href="2fa.html">Enable Two-factor Authentication</a>
+    </form>
+
+    <form id="login">
+      <h2>Login</h2>
+      <div>
+        <label for="login-email">Email</label>
+        <input
+          id="login-email"
           autocomplete="email"
           value="r.mark.volkmann@gmail.com"
         />
       </div>
       <div>
-        <label for="password">Password</label>
+        <label for="login-password">Password</label>
         <input
+          id="login-password"
+          type="password"
+          autocomplete="current-password"
+          value="secret"
+        />
+      </div>
+      <button>Login</button>
+    </form>
+
+    <form id="login-2fa">
+      <h2>Login with Two-factor Authentication</h2>
+      <div>
+        <label for="login-2fa-code">2FA Code</label>
+        <input id="login-2fa-code" type="number" />
+      </div>
+      <button>Submit 2FA</button>
+    </form>
+
+    <form id="logout">
+      <h2>Logout</h2>
+      <button>Logout</button>
+    </form>
+
+    <form id="change-password">
+      <h2>Change Password</h2>
+      <div>
+        <label for="change-password-email">Email</label>
+        <input
+          id="change-password-email"
+          autocomplete="email"
+          value="r.mark.volkmann@gmail.com"
+        />
+      </div>
+      <div>
+        <label for="change-password-old-password">Current Password</label>
+        <input
+          id="change-password-old-password"
+          type="password"
+          autocomplete="current-password"
+          value="secret"
+        />
+      </div>
+      <div>
+        <label for="change-password-new-password">New Password</label>
+        <input
+          id="change-password-new-password"
+          type="password"
+          autocomplete="current-password"
+          value="secret"
+        />
+      </div>
+      <button>Change Password</button>
+    </form>
+
+    <form id="forgot-password">
+      <h2>Forgot Password</h2>
+      <div>
+        <label for="forgot-password-email">Email</label>
+        <input
+          id="forgot-password-email"
+          autocomplete="email"
+          value="r.mark.volkmann@gmail.com"
+        />
+      </div>
+      <button>Forgot Password</button>
+    </form>
+
+    <form id="unregister">
+      <h2>Unregister</h2>
+      <div>
+        <label for="unregister-email">Email</label>
+        <input
+          id="unregister-email"
+          autocomplete="email"
+          required
+          type="email"
+          value="r.mark.volkmann@gmail.com"
+        />
+      </div>
+      <div>
+        <label for="unregister-password">Password</label>
+        <input
+          autocomplete="current-password"
           id="password"
+          required
           type="password"
-          autocomplete="current-password"
           value="secret"
         />
       </div>
-      <div>
-        <label for="confirm-password">Confirm Password</label>
-        <input
-          id="confirm-password"
-          type="password"
-          autocomplete="current-password"
-          value="secret"
-        />
-      </div>
-      <div>
-        <label for="new-password">New Password</label>
-        <input
-          id="new-password"
-          type="password"
-          autocomplete="current-password"
-          value="secret"
-        />
-      </div>
-      <div>
-        <label for="code-2fa-input">2FA Code</label>
-        <input id="code-2fa-input" type="number" />
-      </div>
-      <div class="buttons">
-        <button id="register-btn" type="button">Register</button>
-        <button id="unregister-btn" type="button">Unregister</button>
-        <button id="login-btn" type="button">Login</button>
-        <button id="logout-btn" type="button">Logout</button>
-        <button id="change-password-btn" type="button">Change Password</button>
-        <button id="forgot-password-btn" type="button">Forgot Password</button>
-        <a href="2fa.html">Configure 2FA</a>
-        <button id="submit-2fa-btn" type="button">Submit 2FA</button>
-      </div>
+      <button>Unregister</button>
     </form>
   </body>
 </html>
