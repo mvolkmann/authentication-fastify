@@ -10,7 +10,7 @@ import {getCollection} from './db.js';
 
 const {compare, genSalt, hash} = bcrypt;
 
-const {ObjectId} = mongo;
+const {ObjectID} = mongo;
 
 const FROM_EMAIL = 'r.mark.volkmann@gmail.com';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -135,17 +135,39 @@ export async function deleteCurrentUser(request, reply) {
   }
 }
 
-/* This is dangerous because it allows any user to delete any other user.
+// Only admin users should be able to invoke this.
 export async function deleteUser(request, reply) {
   const {email} = request.params;
   try {
-    await getCollection('user').deleteMany({email});
-    reply.send('user deleted');
+    const user = await getCollection('user').findOne({email});
+    if (user) {
+      const id = ObjectID(user._id);
+      await getCollection('session').deleteMany({userId: id});
+      await getCollection('user').deleteMany({_id: id});
+      reply.send('user deleted');
+    } else {
+      reply.code(404).send();
+    }
   } catch (e) {
     reply.code(500).send('error deleting user');
   }
 }
-*/
+
+// Only admin users should be able to invoke this.
+export async function deleteUserSessions(request, reply) {
+  const {email} = request.params;
+  try {
+    const user = await getCollection('user').findOne({email});
+    if (user) {
+      await getCollection('session').deleteMany({userId: ObjectID(user._id)});
+      reply.send('user sessions deleted');
+    } else {
+      reply.code(404).send();
+    }
+  } catch (e) {
+    reply.code(500).send('error deleting user sessions');
+  }
+}
 
 export async function forgotPassword(request, reply) {
   const {email} = request.params;

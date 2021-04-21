@@ -1,10 +1,13 @@
 const URL_PREFIX = 'https://api.nodeauth.dev/';
 
 async function deleteResource(path, body) {
-  return fetch(URL_PREFIX + path, {
+  const res = await fetch(URL_PREFIX + path, {
     credentials: 'include', // required to send cookies
     method: 'DELETE'
   });
+  const result = await getResult(res);
+  if (!res.ok) throw new Error(result);
+  return result;
 }
 
 async function getJson(path) {

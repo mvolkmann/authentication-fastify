@@ -15,6 +15,28 @@ async function changePassword() {
   }
 }
 
+async function deleteUser() {
+  const email = getValue('delete-user-email');
+  try {
+    await deleteResource('user/' + encodeURIComponent(email));
+    return 'User deleted';
+  } catch (e) {
+    console.error('deleteUser error:', e);
+    throw new Error('Delete User failed');
+  }
+}
+
+async function deleteUserSessions() {
+  const email = getValue('delete-user-sessions-email');
+  try {
+    await deleteResource(`user/${encodeURIComponent(email)}/sessions`);
+    return 'User Sessions deleted';
+  } catch (e) {
+    console.error('deleteUserSessions error:', e);
+    throw new Error('Delete User Sessions failed');
+  }
+}
+
 async function forgotPassword(event) {
   const email = getValue('forgot-password-email');
   try {
@@ -166,6 +188,8 @@ window.onload = () => {
   onSubmit('unregister', unregister);
   onSubmit('forgot-password', forgotPassword);
   onSubmit('login-2fa', login2FA);
+  onSubmit('delete-user', deleteUser);
+  onSubmit('delete-user-sessions', deleteUserSessions);
 
   setLoggedIn(false);
 };

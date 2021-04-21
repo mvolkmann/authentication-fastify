@@ -9,7 +9,8 @@ import {
   changePassword,
   createUser,
   deleteCurrentUser,
-  //deleteUser,
+  deleteUser,
+  deleteUserSessions,
   forgotPassword,
   getNewPassword,
   getUser,
@@ -84,7 +85,8 @@ async function startApp() {
     app.post('/user/password', {}, changePassword);
     app.post('/user', {}, createUser);
     app.delete('/user', {}, deleteCurrentUser);
-    //app.delete('/user/:email', {}, deleteUser);
+    app.delete('/user/:email', {}, deleteUser);
+    app.delete('/user/:email/sessions', {}, deleteUserSessions);
     app.post('/login', {}, login);
     //TODO: Verify that the /test route fails when called after logout.
     app.get('/logout', {}, logout);
