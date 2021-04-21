@@ -32,6 +32,10 @@ function getValue(id) {
   return document.getElementById(id).value;
 }
 
+function hide(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
 async function login() {
   const email = getValue('login-email');
   const password = getValue('login-password');
@@ -39,6 +43,8 @@ async function login() {
     const res = await postJson('login', {email, password});
     if (res.status === '2FA') {
       // 2FA is enabled
+      hide('login');
+      show('login-2fa');
       return 'Now authenticate with 2FA.';
     } else {
       setLoggedIn(true);
@@ -56,6 +62,7 @@ async function login2FA() {
   try {
     await postJson('2fa/login', {code, email, password});
     setLoggedIn(true);
+    hide('login-2fa');
     return 'Authenticated with 2FA';
   } catch (e) {
     console.error('submit2FA error:', e);
@@ -115,34 +122,29 @@ function setCursor(form, cursor) {
 }
 
 function setLoggedIn(loggedIn) {
-  const changePassword = document.querySelector('form#change-password');
-  const enable2FA = document.querySelector('form#enable-2fa');
-  const forgotPassword = document.querySelector('form#forgot-password');
-  const login = document.querySelector('form#login');
-  const login2FA = document.querySelector('form#login-2fa');
-  const logout = document.querySelector('form#logout');
-  const unregister = document.querySelector('form#unregister');
-
-  const hide = element => (element.style.display = 'none');
-  const show = element => (element.style.display = 'block');
-
+  console.log('ui.js setLoggedIn: loggedIn =', loggedIn);
   if (loggedIn) {
-    hide(forgotPassword);
-    hide(login);
-    hide(login2FA);
-    show(changePassword);
-    show(enable2FA);
-    show(logout);
-    show(unregister);
+    hide('forgot-password');
+    hide('login');
+    show('change-password');
+    show('enable-2fa');
+    show('logout');
+    show('unregister');
   } else {
-    hide(changePassword);
-    hide(enable2FA);
-    hide(logout);
-    hide(unregister);
-    show(forgotPassword);
-    show(login);
-    show(login2FA);
+    hide('change-password');
+    hide('enable-2fa');
+    hide('logout');
+    hide('unregister');
+    show('forgot-password');
+    show('login');
+    show('login-2fa');
   }
+
+  hide('login-2fa');
+}
+
+function show(id) {
+  document.getElementById(id).style.display = 'block';
 }
 
 async function unregister() {
