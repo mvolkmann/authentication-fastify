@@ -37,6 +37,9 @@ const app = fastify(); // no request logging
 
 async function getProtectedData(request, reply) {
   try {
+    // There are built-in ways in Fastify
+    // to verify that the user is authenticated,
+    // but we are doing it manually to demonstrate the steps.
     await getUser(request, reply);
     reply.send({data: 'This is protected data.'});
   } catch (e) {
@@ -47,23 +50,6 @@ async function getProtectedData(request, reply) {
 
 function getUnprotectedData(request, reply) {
   reply.send({data: 'This is unprotected data.'});
-}
-
-async function test(request, reply) {
-  // There are built-in ways to do this in Fastify,
-  // but we are doing it manually to demonstrate the steps.
-  try {
-    const user = await getUser(request, reply);
-
-    if (user?._id) {
-      reply.send('user session found');
-    } else {
-      reply.status(400).send('no user session found');
-    }
-  } catch (e) {
-    console.error(e);
-    throw new Error('failed to get session: ' + e.message);
-  }
 }
 
 async function startApp() {
@@ -114,10 +100,6 @@ async function startApp() {
 
     app.post('/2fa/register', {}, register2FA);
     app.post('/2fa/login', {}, login2FA);
-
-    // This demonstrates implementing a protected route.
-    //TODO: Verify that the /test route fails when called after logout.
-    app.get('/test', {}, test);
 
     await app.listen(PORT);
     console.info('listening on port', PORT);
