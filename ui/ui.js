@@ -54,8 +54,11 @@ function getValue(id) {
   return document.getElementById(id).value;
 }
 
-function hide(id) {
-  document.getElementById(id).style.display = 'none';
+function hide(selector) {
+  const elements = document.querySelectorAll(selector);
+  for (const element of elements) {
+    element.style.display = 'none';
+  }
 }
 
 async function login() {
@@ -144,29 +147,35 @@ function setCursor(form, cursor) {
 }
 
 function setLoggedIn(loggedIn) {
-  console.log('ui.js setLoggedIn: loggedIn =', loggedIn);
   if (loggedIn) {
-    hide('forgot-password');
-    hide('login');
-    show('change-password');
-    show('enable-2fa');
-    show('logout');
-    show('unregister');
+    sessionStorage.setItem('authenticated', 'true');
+    show('.protected');
+    hide('#forgot-password');
+    hide('#login');
+    show('#change-password');
+    show('#enable-2fa');
+    show('#logout');
+    show('#unregister');
   } else {
-    hide('change-password');
-    hide('enable-2fa');
-    hide('logout');
-    hide('unregister');
-    show('forgot-password');
-    show('login');
-    show('login-2fa');
+    sessionStorage.removeItem('authenticated');
+    hide('.protected');
+    hide('#change-password');
+    hide('#enable-2fa');
+    hide('#logout');
+    hide('#unregister');
+    show('#forgot-password');
+    show('#login');
+    show('#login-2fa');
   }
 
-  hide('login-2fa');
+  hide('#login-2fa');
 }
 
-function show(id) {
-  document.getElementById(id).style.display = 'block';
+function show(selector) {
+  const elements = document.querySelectorAll(selector);
+  for (const element of elements) {
+    element.style.display = 'block';
+  }
 }
 
 async function unregister() {
@@ -191,5 +200,5 @@ window.onload = () => {
   onSubmit('delete-user', deleteUser);
   onSubmit('delete-user-sessions', deleteUserSessions);
 
-  setLoggedIn(false);
+  setLoggedIn(sessionStorage.getItem('authenticated') === 'true');
 };

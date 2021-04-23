@@ -208,7 +208,7 @@ export async function getUser(request, reply) {
 
     // Return the user.
     const user = await getCollection('user').findOne({
-      _id: ObjectId(decodedAccessToken.userId)
+      _id: ObjectID(decodedAccessToken.userId)
     });
     return user;
   } else {
@@ -221,7 +221,7 @@ export async function getUser(request, reply) {
       if (session.valid) {
         // Find the user associated with this session.
         const user = await getCollection('user').findOne({
-          _id: ObjectId(session.userId)
+          _id: ObjectID(session.userId)
         });
         if (!user) throw new Error('user not found');
 

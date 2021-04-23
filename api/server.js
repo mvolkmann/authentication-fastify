@@ -35,6 +35,20 @@ const PORT = 1919;
 //const app = fastify({logger: true});
 const app = fastify(); // no request logging
 
+async function getProtectedData(request, reply) {
+  try {
+    await getUser(request, reply);
+    reply.send({data: 'This is protected data.'});
+  } catch (e) {
+    console.error('server.js getProtectedData: e =', e);
+    reply.code(401).send();
+  }
+}
+
+function getUnprotectedData(request, reply) {
+  reply.send({data: 'This is unprotected data.'});
+}
+
 async function test(request, reply) {
   // There are built-in ways to do this in Fastify,
   // but we are doing it manually to demonstrate the steps.
@@ -80,6 +94,12 @@ async function startApp() {
       reply.send('server has a heartbeat');
     });
 
+    app.post('/login', {}, login);
+    app.get('/logout', {}, logout);
+
+    app.get('/protected', {}, getProtectedData);
+    app.get('/unprotected', {}, getUnprotectedData);
+
     app.get('/user', {}, getUserService);
     app.get('/user/forgot-password/:email', {}, forgotPassword);
     app.post('/user/password', {}, changePassword);
@@ -87,16 +107,16 @@ async function startApp() {
     app.delete('/user', {}, deleteCurrentUser);
     app.delete('/user/:email', {}, deleteUser);
     app.delete('/user/:email/sessions', {}, deleteUserSessions);
-    app.post('/login', {}, login);
-    //TODO: Verify that the /test route fails when called after logout.
-    app.get('/logout', {}, logout);
-    app.get('/verify/:email/:token', {}, verifyUser);
     app.get('/user/reset/:email/:expires/:token', {}, getNewPassword);
     app.post('/user/reset', {}, resetPassword);
+
+    app.get('/verify/:email/:token', {}, verifyUser);
+
     app.post('/2fa/register', {}, register2FA);
     app.post('/2fa/login', {}, login2FA);
 
     // This demonstrates implementing a protected route.
+    //TODO: Verify that the /test route fails when called after logout.
     app.get('/test', {}, test);
 
     await app.listen(PORT);
