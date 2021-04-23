@@ -93,11 +93,13 @@ function createToken(...data) {
 export async function createTokens(userId, sessionToken, reply) {
   try {
     const accessToken = jwt.sign({userId, sessionToken}, JWT_SIGNATURE);
-    createCookie(reply, 'access-token', accessToken);
+    let expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 10); // expires in 10 minutes
+    createCookie(reply, 'access-token', accessToken, expires);
 
     const refreshToken = jwt.sign({sessionToken}, JWT_SIGNATURE);
-    const now = new Date();
-    const expires = now.setDate(now.getDate() + 7); // one week from now
+    expires = new Date();
+    expires.setDate(expires.getDate() + 7); // expires in one week
     createCookie(reply, 'refresh-token', refreshToken, expires);
   } catch (e) {
     console.error(e);
