@@ -1,7 +1,3 @@
-let confirmPasswordInput;
-let passwordInput;
-let resetPasswordBtn;
-
 function getValue(id) {
   return document.getElementById(id).value;
 }

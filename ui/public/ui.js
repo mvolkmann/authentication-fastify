@@ -37,12 +37,10 @@ async function deleteUserSessions() {
   }
 }
 
-async function forgotPassword(event) {
+async function forgotPassword() {
   const email = getValue('forgot-password-email');
   try {
-    const res = await getJson(
-      'user/forgot-password/' + encodeURIComponent(email)
-    );
+    await getJson('user/forgot-password/' + encodeURIComponent(email));
     return 'Check your email for a link to reset your password.';
   } catch (e) {
     console.error('forgotPassword error:', e);
@@ -68,8 +66,8 @@ async function login() {
     const res = await postJson('login', {email, password});
     if (res.status === '2FA') {
       // 2FA is enabled
-      hide('login');
-      show('login-2fa');
+      hide('#login');
+      show('#login-2fa');
       return 'Now authenticate with 2FA.';
     } else {
       setLoggedIn(true);
@@ -87,7 +85,7 @@ async function login2FA() {
   try {
     await postJson('2fa/login', {code, email, password});
     setLoggedIn(true);
-    hide('login-2fa');
+    hide('#login-2fa');
     return 'Authenticated with 2FA';
   } catch (e) {
     console.error('submit2FA error:', e);
@@ -126,7 +124,7 @@ async function register() {
   const confirmPassword = getValue('register-confirm-password');
   if (confirmPassword === password) {
     try {
-      const {userId} = await postJson('user', {email, password});
+      await postJson('user', {email, password});
       setLoggedIn(true);
       return 'Check your email for a link to verify your account.';
     } catch (e) {

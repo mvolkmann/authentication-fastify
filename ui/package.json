@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "web UI for authentication-fastify project",
   "scripts": {
-    "start": "http-server --port 5000"
+    "format": "prettier --write 'public/*.{css,html,js}'",
+    "lint": "eslint --fix --quiet public",
+    "start": "http-server ./public --port 5000"
   },
   "author": "R. Mark Volkmann",
   "license": "MIT",

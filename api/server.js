@@ -1,9 +1,9 @@
 import {fastify} from 'fastify';
 import fastifyCookie from 'fastify-cookie';
 import fastifyCors from 'fastify-cors';
-import fastifyStatic from 'fastify-static';
-import path from 'path';
-import {fileURLToPath} from 'url';
+//import fastifyStatic from 'fastify-static';
+//import path from 'path';
+//import {fileURLToPath} from 'url';
 
 import {
   changePassword,
@@ -23,12 +23,6 @@ import {
   verifyUser
 } from './auth.js';
 import {connect} from './db.js';
-
-// Normally these names are defined by Node.js.
-// But when "type" is set to "module" in package.json,
-// these go away.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const PORT = 1919;
 
@@ -70,11 +64,17 @@ async function startApp() {
       secret: process.env.COOKIE_SIGNATURE
     });
 
+    /*
+    // Normally these names are defined by Node.js.
+    // But when "type" is set to "module" in package.json, these go away.
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+
     // Serve static files from the "public" directory.
-    // Browse localhost:1919/demo to test all the REST services.
     app.register(fastifyStatic, {
       root: path.join(__dirname, 'public')
     });
+    */
 
     app.get('/', {}, (request, reply) => {
       reply.send('server has a heartbeat');
@@ -96,7 +96,7 @@ async function startApp() {
     app.get('/user/reset/:email/:expires/:token', {}, getNewPassword);
     app.post('/user/reset', {}, resetPassword);
 
-    app.get('/verify/:email/:token', {}, verifyUser);
+    app.get('/verify/:email/:expires/:token', {}, verifyUser);
 
     app.post('/2fa/register', {}, register2FA);
     app.post('/2fa/login', {}, login2FA);

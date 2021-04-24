@@ -9,7 +9,7 @@ nodeauth.dev {
 }
 
 # This is for the API server.
-# Why is it important for this to be a subdomain of the UI server?
+# TODO: Why is it important for this to be a subdomain of the UI server?
 api.nodeauth.dev {
   reverse_proxy 127.0.0.1:1919
 }
