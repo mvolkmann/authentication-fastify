@@ -28,7 +28,7 @@ async function deleteUser() {
     return 'User deleted';
   } catch (e) {
     console.error('deleteUser error:', e);
-    throw new Error('Delete User failed');
+    throw new Error(e);
   }
 }
 
@@ -40,7 +40,7 @@ async function deleteUserSessions() {
     return 'User Sessions deleted';
   } catch (e) {
     console.error('deleteUserSessions error:', e);
-    throw new Error('Delete User Sessions failed');
+    throw new Error(e);
   }
 }
 
@@ -136,11 +136,12 @@ function onSubmit(formId, handler) {
 // Registers a new user.
 async function register() {
   const email = getValue('register-email');
+  const role = getValue('register-role');
   const password = getValue('register-password');
   const confirmPassword = getValue('register-confirm-password');
   if (confirmPassword === password) {
     try {
-      await postJson('user', {email, password});
+      await postJson('user', {email, password, role});
       setLoggedIn(true);
       return 'Check your email for a link to verify your account.';
     } catch (e) {

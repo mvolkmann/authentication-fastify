@@ -13,7 +13,7 @@ const {compare, genSalt, hash} = bcrypt;
 
 const {ObjectID} = mongo;
 
-const ACCESS_TOKEN_MINUTES = 10; // expire after this
+const ACCESS_TOKEN_MINUTES = 1; // expire after this
 const FROM_EMAIL = 'r.mark.volkmann@gmail.com';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const REFRESH_TOKEN_DAYS = 7; // expire after this
@@ -160,7 +160,7 @@ export async function createTokens(userId, sessionToken, reply) {
 }
 
 export async function createUser(request, reply) {
-  const {email, password} = request.body;
+  const {email, password, role} = request.body;
   try {
     const hashedPassword = await hashPassword(password);
 
@@ -168,6 +168,7 @@ export async function createUser(request, reply) {
     await getCollection('user').insertOne({
       email,
       password: hashedPassword,
+      role,
       verified: false
     });
 
@@ -203,7 +204,11 @@ export async function deleteCurrentUser(request, reply) {
 
 // Only admin users should be able to invoke this.
 export async function deleteUser(request, reply) {
-  //TODO: Get the current user and verify that they have an admin role.
+  const currentUser = await getUser(request, reply);
+  if (currentUser.role !== 'admin') {
+    reply.code(401).send('Only admin users can delete another user.');
+    return;
+  }
 
   const {email} = request.params;
 
@@ -222,6 +227,16 @@ export async function deleteUser(request, reply) {
       // There should only be one.
       await getCollection('user').deleteMany({_id: id});
 
+      // NOTE:
+      // The user will be able to continue calling
+      // services until their access token expires.
+      // Subsequent requests will attempt to use their refresh token
+      // to create a new access token, but this will fail because
+      // all their session records will have been deleted.
+      // Recall that a benefit of using both access and refresh tokens
+      // is that access token checks can be very fast
+      // because the only check that the token is valid.
+
       reply.send('user deleted');
     } else {
       // No matching "user" record was found.
@@ -235,7 +250,11 @@ export async function deleteUser(request, reply) {
 
 // Only admin users should be able to invoke this.
 export async function deleteUserSessions(request, reply) {
-  //TODO: Get the current user and verify that they have an admin role.
+  const currentUser = await getUser(request, reply);
+  if (currentUser.role !== 'admin') {
+    reply.code(401).send('Only admin users can delete user sessions.');
+    return;
+  }
 
   const {email} = request.params;
 
@@ -246,6 +265,8 @@ export async function deleteUserSessions(request, reply) {
       // Delete all records from the "session" collection
       // that have the id of the user with the specified email.
       await getCollection('session').deleteMany({userId: ObjectID(user._id)});
+
+      // See NOTE in the deleteUser function above.
 
       reply.send('user sessions deleted');
     } else {

@@ -47,3 +47,9 @@ label {
   text-align: right;
   width: var(--label-width);
 }
+
+select {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
