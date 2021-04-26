@@ -1,3 +1,4 @@
+// Currently there are no requirements on passwords.
 async function changePassword() {
   const email = getValue('change-password-email');
   const oldPassword = getValue('change-password-old-password');
@@ -19,6 +20,7 @@ function clearInput(id) {
   document.getElementById(id).value = '';
 }
 
+// The server should only honor this for admin users.
 async function deleteUser() {
   const email = getValue('delete-user-email');
   try {
@@ -30,6 +32,7 @@ async function deleteUser() {
   }
 }
 
+// The server should only honor this for admin users.
 async function deleteUserSessions() {
   const email = getValue('delete-user-sessions-email');
   try {
@@ -52,10 +55,12 @@ async function forgotPassword() {
   }
 }
 
+// Gets the value of a form element.
 function getValue(id) {
   return document.getElementById(id).value;
 }
 
+// Hides all elements that match a given selector.
 function hide(selector) {
   const elements = document.querySelectorAll(selector);
   for (const element of elements) {
@@ -108,6 +113,11 @@ async function logout() {
   }
 }
 
+// There are many "form" elements in index.html.
+// This provides handling of the "submit" event for the form with a given id.
+// It changes the cursor to a wait cursor while the handler function runs and
+// changes it back to a default cursor when the handler function completes.
+// It also provides generic error handling.
 function onSubmit(formId, handler) {
   document.getElementById(formId).addEventListener('submit', async event => {
     setCursor(event.target, 'wait');
@@ -123,6 +133,7 @@ function onSubmit(formId, handler) {
   });
 }
 
+// Registers a new user.
 async function register() {
   const email = getValue('register-email');
   const password = getValue('register-password');
@@ -141,6 +152,8 @@ async function register() {
   }
 }
 
+// Sets the cursor for the enter UI,
+// including when hovering over all buttons.
 function setCursor(form, cursor) {
   document.body.style.cursor = cursor;
   const buttons = form.querySelectorAll('button');
@@ -149,6 +162,9 @@ function setCursor(form, cursor) {
   }
 }
 
+// This changes the UI based on whether a user is currently logged in.
+// Whether a user is logged in is saved in sessionStorage
+// so it is not lost if the user refreshes their browser.
 function setLoggedIn(loggedIn) {
   if (loggedIn) {
     sessionStorage.setItem('authenticated', 'true');
@@ -174,6 +190,7 @@ function setLoggedIn(loggedIn) {
   hide('#login-2fa');
 }
 
+// Shows all elements that match a given selector.
 function show(selector) {
   const elements = document.querySelectorAll(selector);
   for (const element of elements) {
@@ -181,6 +198,7 @@ function show(selector) {
   }
 }
 
+// Unregisters the currently logged in user.
 async function unregister() {
   try {
     await deleteResource('user'); // deletes current user
@@ -193,6 +211,7 @@ async function unregister() {
 }
 
 window.onload = () => {
+  // Configure event handling for all the "form" elements on the page.
   onSubmit('change-password', changePassword);
   onSubmit('login', login);
   onSubmit('logout', logout);
@@ -203,5 +222,7 @@ window.onload = () => {
   onSubmit('delete-user', deleteUser);
   onSubmit('delete-user-sessions', deleteUserSessions);
 
+  // Restore whether a user is currently logged in from the
+  // last value in sessionStorage which survives browser refreshes.
   setLoggedIn(sessionStorage.getItem('authenticated') === 'true');
 };
