@@ -2,9 +2,10 @@ import {authenticator} from '@otplib/preset-default';
 import bcrypt from 'bcryptjs';
 import crypto, {randomBytes} from 'crypto'; // in Node.js
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import mongo from 'mongodb';
 import nodemailer from 'nodemailer';
-import jwt from 'jsonwebtoken';
+//import sendmailSetup from 'sendmail';
 
 import {getCollection} from './db.js';
 
@@ -18,6 +19,8 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const REFRESH_TOKEN_DAYS = 7; // expire after this
 const SESSION_TOKEN_LENGTH = 50;
 const VERIFY_MINUTES = 10;
+
+//const sendmail = sendmailSetup();
 
 // Load environment variables from the .env file into process.env.
 // JWT_SIGNATURE is a hard-to-guess string.
@@ -68,12 +71,14 @@ export async function changePassword(request, reply) {
   }
 }
 
-// Sends an email message using Ethereal.
-// From https://ethereal.email, "Ethereal is a fake SMTP service,
-// mostly aimed at Nodemailer users (but not limited to).
-// It's a completely free anti-transactional email service
-// where messages never get delivered."
 export async function configureEmail() {
+  /*
+  // This sends an email message using Ethereal.
+  // From https://ethereal.email, "Ethereal is a fake SMTP service,
+  // mostly aimed at Nodemailer users (but not limited to).
+  // It's a completely free anti-transactional email service
+  // where messages never get delivered."
+
   // Create an account to use with Ethereal.
   const testAccount = await nodemailer.createTestAccount();
 
@@ -84,6 +89,16 @@ export async function configureEmail() {
     auth: {
       user: testAccount.user,
       pass: testAccount.pass
+    }
+  });
+  */
+
+  // This sends an email using a Gmail account.
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS
     }
   });
 }
@@ -437,7 +452,6 @@ export async function register2FA(request, reply) {
   try {
     // Get the user associated with the current session.
     const user = await getUser(request, reply);
-    console.log('auth.js register2FA: user =', user);
 
     // If the user exists and
     // the 2FA code generated using the secret matches the specified code ...
@@ -488,16 +502,25 @@ export async function resetPassword(request, reply) {
   }
 }
 
-//TODO: Can you send mail for real without paying for an SMTP server?
-//TODO: See https://www.npmjs.com/package/sendmail
 export async function sendEmail({from = FROM_EMAIL, to, subject, html}) {
   // If sending of email has not yet been configured ...
   if (!mail) mail = await configureEmail();
 
-  const info = await mail.sendMail({from, to, subject, html});
+  return mail.sendMail({from, to, subject, html});
 
+  //const info = await mail.sendMail({from, to, subject, html});
   // Output the URL where the Ethereal email can be viewed.
-  console.log('email preview URL =', nodemailer.getTestMessageUrl(info));
+  //console.log('email preview URL =', nodemailer.getTestMessageUrl(info));
+
+  // This approach supposedly doesn't require an SMTP server,
+  // but I couldn't get it to work.  It produced a lot of output
+  // that indicates it worked, but I never receive the email.
+  /*
+  sendmail({from, to, subject, html}, (err, reply) => {
+    console.log('auth.js sendEmail: err =', err);
+    console.log('auth.js sendEmail: reply =', reply);
+  });
+  */
 }
 
 function sendVerifyEmail(email) {

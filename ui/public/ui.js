@@ -15,6 +15,10 @@ async function changePassword() {
   }
 }
 
+function clearInput(id) {
+  document.getElementById(id).value = '';
+}
+
 async function deleteUser() {
   const email = getValue('delete-user-email');
   try {
@@ -86,6 +90,7 @@ async function login2FA() {
     await postJson('2fa/login', {code, email, password});
     setLoggedIn(true);
     hide('#login-2fa');
+    clearInput('login-2fa-code');
     return 'Authenticated with 2FA';
   } catch (e) {
     console.error('submit2FA error:', e);

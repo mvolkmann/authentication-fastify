@@ -4,6 +4,20 @@ This demonstrates user management using Node.js and Fastify.
 It is based on ideas from the Level Up Tutorials courses
 "Node Fundamentals Authentication" and "Level 2 Node Authentication".
 
+This app sends email using a Gmail account
+I created specifically for this purpose.
+After creating the account, I had to opt into
+"Less secure app access" by following these steps:
+
+- browse gmail.com
+- switch to the new account
+- click the settings cog in the upper-right
+- click the user icon in the upper-right
+- click "Manage your Google Account"
+- click "Security" in the left nav
+- scroll to "Less secure app access"
+- click the "Allow less secure apps" toggle
+
 To build and start the API server which listens on port 1919:
 
 - `cd api`
