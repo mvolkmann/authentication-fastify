@@ -37,7 +37,7 @@ async function getProtectedData(request, reply) {
     await getUser(request, reply);
     reply.send({data: 'This is protected data.'});
   } catch (e) {
-    console.error('server.js getProtectedData: e =', e);
+    console.error('server.js getProtectedData:', e.message);
     reply.code(401).send();
   }
 }

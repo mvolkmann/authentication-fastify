@@ -44,11 +44,11 @@ export async function changePassword(request, reply) {
   const {email, oldPassword, newPassword} = request.body;
   const unencodedEmail = decodeURIComponent(email);
 
-  // This verifies that the user is currently authenticated
-  // and gets their current hashed password.
-  const user = await getUser(request, reply);
-
   try {
+    // This verifies that the user is currently authenticated
+    // and gets their current hashed password.
+    const user = await getUser(request, reply);
+
     // Hash "oldPassword" and compare it to the current hashed password.
     const matches = await compare(oldPassword, user.password);
     if (matches) {
@@ -186,11 +186,11 @@ export async function createUser(request, reply) {
 }
 
 export async function deleteCurrentUser(request, reply) {
-  // This verifies that the user is currently authenticated
-  // and gets their email.
-  const user = await getUser(request, reply);
-
   try {
+    // This verifies that the user is currently authenticated
+    // and gets their email.
+    const user = await getUser(request, reply);
+
     // Delete all records from the "user" collection
     // that have the email address of the current user.
     await getCollection('user').deleteMany({email: user.email});
@@ -204,15 +204,15 @@ export async function deleteCurrentUser(request, reply) {
 
 // Only admin users should be able to invoke this.
 export async function deleteUser(request, reply) {
-  const currentUser = await getUser(request, reply);
-  if (currentUser.role !== 'admin') {
-    reply.code(401).send('Only admin users can delete another user.');
-    return;
-  }
-
   const {email} = request.params;
 
   try {
+    const currentUser = await getUser(request, reply);
+    if (currentUser.role !== 'admin') {
+      reply.code(401).send('Only admin users can delete another user.');
+      return;
+    }
+
     // Get the record from the "user" collection with the specified email.
     const user = await getCollection('user').findOne({email});
     if (user) {
@@ -250,15 +250,15 @@ export async function deleteUser(request, reply) {
 
 // Only admin users should be able to invoke this.
 export async function deleteUserSessions(request, reply) {
-  const currentUser = await getUser(request, reply);
-  if (currentUser.role !== 'admin') {
-    reply.code(401).send('Only admin users can delete user sessions.');
-    return;
-  }
-
   const {email} = request.params;
 
   try {
+    const currentUser = await getUser(request, reply);
+    if (currentUser.role !== 'admin') {
+      reply.code(401).send('Only admin users can delete user sessions.');
+      return;
+    }
+
     // Get the record from the "user" collection with the specified email.
     const user = await getCollection('user').findOne({email});
     if (user) {
@@ -331,6 +331,7 @@ export async function getUser(request, reply) {
   const accessToken = request.cookies['access-token'];
   if (accessToken) {
     // Verify that the access token is valid and decode it.
+    // This throws if accessToken is not valid.
     const decodedAccessToken = jwt.verify(accessToken, JWT_SIGNATURE);
 
     // Get the record from the "user" collection
@@ -343,6 +344,7 @@ export async function getUser(request, reply) {
     const refreshToken = request.cookies['refresh-token'];
     if (refreshToken) {
       // Verify that the refresh token is valid and decode it.
+      // This throws if refreshToken is not valid.
       const decodedRefreshToken = jwt.verify(refreshToken, JWT_SIGNATURE);
 
       // Get the record from the "session" collection
@@ -350,7 +352,7 @@ export async function getUser(request, reply) {
       const {sessionToken} = decodedRefreshToken;
       const session = await getCollection('session').findOne({sessionToken});
 
-      if (session.valid) {
+      if (session && session.valid) {
         // Find the user associated with this session.
         const user = await getCollection('user').findOne({
           _id: ObjectID(session.userId)
@@ -372,11 +374,15 @@ export async function getUser(request, reply) {
 
 // This wraps the getUser function as a REST service.
 export async function getUserService(request, reply) {
-  const user = await getUser(request, reply);
-  if (user) {
-    reply.send(user);
-  } else {
-    reply.code(404).send();
+  try {
+    const user = await getUser(request, reply);
+    if (user) {
+      reply.send(user);
+    } else {
+      reply.code(404).send();
+    }
+  } catch (e) {
+    reply.code(400).send(e.message);
   }
 }
 
@@ -447,6 +453,7 @@ export async function logout(request, reply) {
     const refreshToken = request.cookies['refresh-token'];
     if (refreshToken) {
       // Get the session token from the refresh token.
+      // This throws if refreshToken is not valid.
       const decodedRefreshToken = jwt.verify(refreshToken, JWT_SIGNATURE);
       const {sessionToken} = decodedRefreshToken;
 
