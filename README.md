@@ -26,6 +26,7 @@ To build and start the API server which listens on port 1919:
 
 To start the Caddy server which provides support for using HTTPS:
 
+- cd to the root project directory
 - `caddy start`
 
 API requests should be sent to `https://api.nodeauth.dev`.
@@ -33,7 +34,7 @@ API requests should be sent to `https://api.nodeauth.dev`.
 To start the UI server which listens on port 5000:
 
 - `cd ui`
-- `npx serve`
+- `npm start`
 - browse nodeauth.dev, NOT localhost:5000!
 
 To register a new account, supply email and
