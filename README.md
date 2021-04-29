@@ -40,11 +40,38 @@ To start the UI server which listens on port 5000:
 To register a new account, supply email and
 matching values for "Password" and "Confirm Password".
 
-To change password, first login and then supply email and
-matching values for "Confirm Password" and "New Password"
+To change password, first login and then supply
+email, current password, and new password
 before pressing the "Change Password" button.
 
 To reset password when forgotten, supply email
 and press the "Forgot Password" button.
 This sends an email containing a "Reset Password" link.
 Click the link to go to a page where you can enter a new password.
+
+To enable two-factor authentication,
+click the link and follow the instructions that are displayed.
+This requires use of a mobile authenticator app like "Google Authenticator".
+After enabling this, subsequent logins
+with the email address of the current user will require
+email, password, and a code from the authenticator app.
+
+To unregister the account of the currently logged in user,
+press the "Unregister" button.
+
+If the logged in user has the "admin" role,
+you can delete all the sessions of a user with a given email address
+by entering it and pressing the "Delete User Sessions" button.
+
+If the logged in user has the "admin" role,
+you can delete all the user with a given email address and all their sessions
+by entering the email address and pressing the "Delete User" button.
+
+The "Unprotected Page" link at the bottom can be clicked and
+will display "This is unprotected data." for any user.
+It will even work if no user is logged in.
+However, the "Protected Page" link at the bottom
+will only be displayed if a user is logged in.
+Clicking the link will display "This is protected data".
+If you attempt browse the URL <https://nodeauth.dev/protected.html>
+and are not logged in, you will see "Access to protected data was blocked."
