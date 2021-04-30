@@ -140,4 +140,28 @@ Clicking the link will display "This is protected data".
 If you attempt browse the URL <https://nodeauth.dev/protected.html>
 and are not logged in, you will see "Access to protected data was blocked."
 
-## Implementation Details
+## UI implementation details
+
+All the user interface code is in the "ui" directory
+and is implemented using vanilla JavaScript.
+
+The UI makes REST calls using functions defined in `ui/public/fetch-util.js`
+which uses the Fetch API.
+
+The UI functionality is defined in `ui/public/ui.js`.
+The functions defined in this file are fairly well-commented
+and should be easy to understand.
+
+The function assigned to `window.onload` near the bottom
+associates a function with each `form` element
+that is called when the form is submitted.
+
+The UI sections that are display vary based on
+whether a user is currently logged in.
+The function `setLoggedIn` manages this.
+
+UI styling is done with vanilla CSS defined in `ui/public/styles.css`.
+
+## Server implementation details
+
+All the server code is in the "api" directory.
