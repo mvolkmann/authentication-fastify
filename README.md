@@ -176,7 +176,46 @@ TODO: Talk about salting and hashing of passwords.
 
 TODO: Talk about verification of passwords.
 
-TODO: Talk about verification of JWT cookies.
+## Cookies
+
+When a user successfully logs in, a new session is created
+by calling the `createSession` function in `api/api.js`.
+This creates a session token that is just a random string of 50 bytes.
+A document containing the session token is
+inserted in the MongoDB `session` collection.
+Finally, the `createTokens` function is called.
+This creates access and refresh tokens that are JSON Web Tokens (JWTs).
+
+The access token contains the user id and a session token...
+It expires in one minute.
+The refresh token contains the same session token.
+It expires in one week.
+
+A short lifetime for the access token was selected
+in order to easily demonstrate recreating the tokens
+when it expires.
+
+Many REST services validate that they are being called from an active session.
+They do this by calling the `getUser` function in `api/api.js`.
+This verifies that the request contains a valid access token.
+If the access token has expired and is therefore not passed in the request,
+the next step is to verify that the request contains a valid refresh token.
+If it does then the session token is obtained from the refresh token.
+If a corresponding document exists in the MongoDB `session` collection
+and the MongoDB `user` collection contains a document
+corresponding to the user id associated with the session
+then new access and refresh tokens are created
+and the REST call proceeds.
+If any of these requirements are not met,
+the `getUser` function throws an error and
+normal processing of the REST call does not occur.
+
+These cookies are configured to be HttpOnly and Secure.
+Making them HttpOnly prevents them from
+being accessed using the `Document.cookie` function
+which prevents them from being accessed by browser extensions.
+Making them Secure requires use of HTTPS in order to
+pass them between the browser and server.
 
 ## Feature Flow Summaries
 
