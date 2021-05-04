@@ -172,9 +172,31 @@ The function `setLoggedIn` manages this.
 
 UI styling is done with vanilla CSS defined in `ui/public/styles.css`.
 
-TODO: Talk about salting and hashing of passwords.
+## Passwords
 
-TODO: Talk about verification of passwords.
+Passwords are passed from the browser to the server in plain text.
+However, this does not pose a security issue because
+communication between the browser and server
+uses HTTPS which encrypts the data.
+
+The database does not store passwords in plain text.
+Instead of salts and hashes them using the npm package
+{% aTargetBlank "https://github.com/kelektiv/node.bcrypt.js", "bcrypt" %}.
+Salting adds bytes to passwords before they are hashed.
+This increases their length and makes it
+more difficult to guess passwords composed of common words.
+Hashing in this context uses an algorithm to
+generate a value from a salted password.
+This hashed value is stored as the password in the database.
+
+During a login attempt, the bcrypt `compare` function
+is used to compare the password passed in over HTTPS
+to the hashed value in the database.
+Even if a hacker gained access to one of these hashed password values,
+determining the password from which it was generated would require knowing
+the hashing algorithm that was used and
+the number of rounds passed to the `genSalt` function
+which affects the salt values used.
 
 ## Cookies
 
@@ -186,21 +208,23 @@ inserted in the MongoDB `session` collection.
 Finally, the `createTokens` function is called.
 This creates access and refresh tokens that are JSON Web Tokens (JWTs).
 
-The access token contains the user id and a session token...
-It expires in one minute.
+The access token contains the user id and the session token.
+It expires in one minute for demo purposes addressed later.
+REST services can decode the access token to get the user id
+and then query the MongoDB `user` collection
+to get information about the current user.
+
 The refresh token contains the same session token.
 It expires in one week.
-
-A short lifetime for the access token was selected
-in order to easily demonstrate recreating the tokens
-when it expires.
+This token is required to exist in order to create new tokens
+REST calls are made after the access token has expired.
 
 Many REST services validate that they are being called from an active session.
 They do this by calling the `getUser` function in `api/api.js`.
 This verifies that the request contains a valid access token.
 If the access token has expired and is therefore not passed in the request,
 the next step is to verify that the request contains a valid refresh token.
-If it does then the session token is obtained from the refresh token.
+If it does then the refresh token is decoded to obtain the session id.
 If a corresponding document exists in the MongoDB `session` collection
 and the MongoDB `user` collection contains a document
 corresponding to the user id associated with the session
@@ -209,6 +233,10 @@ and the REST call proceeds.
 If any of these requirements are not met,
 the `getUser` function throws an error and
 normal processing of the REST call does not occur.
+
+The short lifetime for the access token was selected
+in order to easily demonstrate recreating the tokens
+when it expires.
 
 These cookies are configured to be HttpOnly and Secure.
 Making them HttpOnly prevents them from

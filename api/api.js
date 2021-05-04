@@ -388,7 +388,7 @@ export async function getUserService(request, reply) {
 
 async function hashPassword(password) {
   // Defaults to 10 rounds.
-  // We use a different value so it can't be guessed.
+  // We use a different value so it can't be easily guessed.
   const salt = await genSalt(9);
   return hash(password, salt);
 }
