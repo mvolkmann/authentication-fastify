@@ -545,8 +545,8 @@ export async function sendEmail({from = FROM_EMAIL, to, subject, html}) {
   // that indicates it worked, but I never receive the email.
   /*
   sendmail({from, to, subject, html}, (err, reply) => {
-    console.log('auth.js sendEmail: err =', err);
-    console.log('auth.js sendEmail: reply =', reply);
+    console.log('api.js sendEmail: err =', err);
+    console.log('api.js sendEmail: reply =', reply);
   });
   */
 }

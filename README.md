@@ -2,8 +2,10 @@
 
 ## Overview
 
-This application demonstrates user management using Node.js and Fastify.
-It is based on ideas from the Level Up Tutorials courses
+This application demonstrates user management using Node.js and.
+[fastify](https://github.com/fastify/fastify) library.
+It is based on ideas from the
+[Level Up Tutorials](https://www.leveluptutorials.com) courses
 "Node Fundamentals Authentication" and "Level 2 Node Authentication".
 It is useful for learning about patterns in user management
 that are not tied to a specific server side programming language
@@ -78,6 +80,10 @@ To start the Caddy server which provides support for using HTTPS:
 - cd to the root project directory
 - `caddy start`
 
+If the Caddy server was running previously,
+you may need to kill a process that is listening on port 2019
+in order to restart Caddy.
+
 API requests are sent to `https://api.nodeauth.dev`.
 
 To start the UI server which listens on port 5000:
@@ -140,10 +146,14 @@ Clicking the link will display "This is protected data".
 If you attempt browse the URL <https://nodeauth.dev/protected.html>
 and are not logged in, you will see "Access to protected data was blocked."
 
-## UI implementation details
+## Implementation details
 
 All the user interface code is in the "ui" directory
 and is implemented using vanilla JavaScript.
+
+All the server code is in the "api" directory.
+It is implemented in Node.js and uses the
+[fastify](https://github.com/fastify/fastify) library.
 
 The UI makes REST calls using functions defined in `ui/public/fetch-util.js`
 which uses the Fetch API.
@@ -162,6 +172,146 @@ The function `setLoggedIn` manages this.
 
 UI styling is done with vanilla CSS defined in `ui/public/styles.css`.
 
-## Server implementation details
+TODO: Talk about salting and hashing of passwords.
 
-All the server code is in the "api" directory.
+TODO: Talk about verification of passwords.
+
+TODO: Talk about verification of JWT cookies.
+
+## Feature Flow Summaries
+
+### Register user
+
+- `ui/public/index.html` renders a form with the id "register".
+- `ui/public/ui.js` defines the `register` function
+  which sends a POST request to the `/user` endpoint.
+- `api/server.js` associates the endpoint with the `createUser` function.
+- `api/api.js` defines the `createUser` function which
+  inserts a document in the MongoDB `user` collection,
+  automatically logs in, and
+  sends an email containing a link to click to verify the account.
+
+### Enable two-factor authentication
+
+- `ui/public/index.html` renders a form with the id "enable-2fa".
+- `ui/public/2fa.html` renders a QR code and a form for entering a code.
+- `ui/public/2fa.js` defines the `setup` function which
+  uses the npm libraries qrcode and @otplib/preset-browser
+  to display a QR code that uses can scan with their phone camera
+  to create a new entry in their mobile authenticator app.
+- The code from the authenticator app is entered in the UI.
+- Submitting the form this form invokes the `register2FA` function
+  defined in `ui/public/2fa.js` which sends a
+  POST request to the `/2fa/register` endpoint.
+- `api/server.js` associates the endpoint with the `register2FA` function.
+- `api/api.js` defines the `register2FA` function which
+  updates a document in the MongoDB `user` collection.
+
+### Login
+
+- `ui/public/index.html` renders a form with the id "login".
+- `ui/public/ui.js` defines the `login` function
+  which sends a POST request to the `/login` endpoint.
+- `api/server.js` associates the endpoint with the `login` function.
+- `api/api.js` defines the `login` function which verifies the user.
+  If two-factor authentication if enabled,
+  that is communicated to the UI so it can prompt for a code.
+  Otherwise it creates a document in the MongoDB `session` collection.
+
+### Login with 2FA
+
+- `ui/public/index.html` renders a form with the id "login-2fa".
+- `ui/public/ui.js` defines the `login2FA` function
+  which sends a POST request to the `/2fa/login` endpoint.
+- `api/server.js` associates the endpoint with the `login2FA` function.
+- `api/api.js` defines the `login2FA` function which
+  verifies the user and the two-factor authentication code.
+  If successful, it creates a document in the MongoDB `session` collection.
+
+### Logout
+
+- `ui/public/index.html` renders a form with the id "logout".
+- `ui/public/ui.js` defines the `logout` function
+  which sends a GET request to the `/logout` endpoint.
+- `api/server.js` associates the endpoint with the `logout` function.
+- `api/api.js` defines the `logout` function which
+  deletes the associated session and clears the access and refresh tokens.
+
+### Forgot password
+
+- `ui/public/index.html` renders a form with the id "forgot-password".
+- `ui/public/ui.js` defines the `forgotPassword` function
+  which sends a GET request to the `/user/forgot-password` endpoint.
+- `api/server.js` associates the endpoint with the `forgotPassword` function.
+- `api/api.js` defines the `forgotPassword` function which
+  triggers sending of an email that includes a link that
+  can be clicked which renders `ui/public/password-reset.html`.
+- `ui/public/password-reset.html` uses `ui/public/password-reset.js`
+  which defines a `resetPassword` function
+  that sends a POST request to the `/user/reset` endpoint.
+- `api/server.js` associates the endpoint with the `resetPassword` function.
+- `api/api.js` defines the `resetPassword` function which
+  validates a token passed to it and
+  updates a document in the MongoDB `user` collection
+  with a new hashed password.
+
+### Change password
+
+- `ui/public/index.html` renders a form with the id "change-password".
+- `ui/public/ui.js` defines the `changePassword` function
+  which sends a POST request to the `/user/password` endpoint.
+- `api/server.js` associates the endpoint with the `changePassword` function.
+- `api/api.js` defines the `changePassword` function which
+  verifies the user and updates a document in the MongoDB `user` collection.
+
+### Unregister user
+
+- `ui/public/index.html` renders a form with the id "unregister".
+- `ui/public/ui.js` defines the `unregister` function
+  which sends a DELETE request to the `/user` endpoint.
+- `api/server.js` associates the endpoint with the `deleteCurrentUser` function.
+- `api/api.js` defines the `deleteCurrentUser` function which
+  verifies the user and deletes a document from the MongoDB `user` collection.
+
+### Delete sessions
+
+- `ui/public/index.html` renders a form with the id "delete-user-sessions".
+- `ui/public/ui.js` defines the `deleteUserSessions` function
+  which sends a DELETE request to the `/user/{email}/sessions` endpoint.
+- `api/server.js` associates the endpoint with the `deleteUserSessions` function.
+- `api/api.js` defines the `deleteUserSessions` function which
+  verifies the current user,
+  including verifying that they have the "admin" role,
+  and deletes documents associated with the given email address
+  from the MongoDB `session` collection.
+
+### Delete user
+
+- `ui/public/index.html` renders a form with the id "delete-user".
+- `ui/public/ui.js` defines the `deleteUser` function
+  which sends a DELETE request to the `/user/{email}` endpoint.
+- `api/server.js` associates the endpoint with the `deleteUser` function.
+- `api/api.js` defines the `deleteUser` function which
+  verifies the current user,
+  including verifying that they have the "admin" role,
+  deletes documents associated with the given email address
+  from the MongoDB `session` collection,
+  and deletes a document from the MongoDB `user` collection.
+
+### Page navigation
+
+One reason to require users to authenticate is to have
+pages that are only accessible to authenticated users.
+In order to demonstrate this, the app has two pages
+that are linked from the main page.
+
+The first link is "Unprotected Page".
+Clicking this navigates to a page that renders "This is unprotected data.".
+It is not necessary to login in order to access this page.
+
+The second link is "Protected Page".
+This link is only rendered when a user has logged in.
+Clicking this navigates to a page that renders "This is protected data."
+When no user is logged in, the browser URL can be manually changed to
+"https://nodeauth.dev/protected.html" to attempt to access the protected page.
+But it will render "Access to protected data was blocked."

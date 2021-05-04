@@ -21,7 +21,7 @@ import {
   register2FA,
   resetPassword,
   verifyUser
-} from './auth.js';
+} from './api.js';
 import {connect} from './db.js';
 
 const PORT = 1919;
