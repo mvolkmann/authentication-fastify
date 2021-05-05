@@ -44,7 +44,13 @@ In both cases the link in the email expires after 10 minutes.
 The link contains either query parameters or path parameters that include
 the user email address, the timestamp at which the link expires,
 and one-way hash of a token that encodes the same data.
-When the server processes a click on these links,
+The link to reset a forgotten password uses query parameters
+because it is a link to the HTML page where the user can enter a new password.
+Path parameters would not work in this case.
+The link to verify a new account uses path parameters
+which works because it invokes a REST service.
+
+When the server processes a click on the links described above,
 it recreates the token from the non-token query parameters
 and verifies that it matches the token.
 This prevents tampering with the non-token query parameter values.
