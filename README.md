@@ -28,8 +28,33 @@ This provides a GUI app for interacting with MongoDB databases.
 
 ## Email
 
-The app sends email using a Gmail account
-I created specifically for this purpose.
+When a new account is created,
+an email message is sent to the user
+that contains a link they can click to verify
+the email address of their account.
+
+If a user forgets their password,
+an email message is sent to the user
+that contains a link they can click to browse
+a page that allows them to enter a new password.
+The link expires after one day.
+
+In both cases the link in the email expires after 10 minutes.
+
+The link contains either query parameters or path parameters that include
+the user email address, the timestamp at which the link expires,
+and one-way hash of a token that encodes the same data.
+When the server processes a click on these links,
+it recreates the token from the non-token query parameters
+and verifies that it matches the token.
+This prevents tampering with the non-token query parameter values.
+The hashed token value includes the value of the environment variable
+`JWT_SIGNATURE` that is defined in `api/.env`.
+This makes it extremely difficult for a hacker to
+modify the query/path parameters in a compatible way.
+
+The app sends email messages using a Gmail account
+created specifically for this purpose.
 After creating the account, I had to opt into
 "Less secure app access" by following these steps:
 
@@ -180,18 +205,27 @@ communication between the browser and server
 uses HTTPS which encrypts the data.
 
 The database does not store passwords in plain text.
-Instead of salts and hashes them using the npm package
+Instead it salts and hashes passwords using the npm package
 {% aTargetBlank "https://github.com/kelektiv/node.bcrypt.js", "bcrypt" %}.
-Salting adds bytes to passwords before they are hashed.
-This increases their length and makes it
-more difficult to guess passwords composed of common words.
-Hashing in this context uses an algorithm to
-generate a value from a salted password.
+"Bcrypt is an adaptive hash function based on the
+Blowfish symmetric block cipher cryptographic algorithm."
+
+Salting adds bytes to the passwords before they are hashed.
+This increases their length and makes it more difficult
+to guess passwords composed of common words.
+The bcrypt `genSalt` function returns a `Promise`
+that resolves to the salt value.
+A different salt value is used for each user.
+
+Hashing in the context of passwords uses an algorithm
+to generate a value from a salted password.
+The bcrypt `hash` function takes a password and a salt value,
+and returns a `Promise` that resolves to a hashed value.
 This hashed value is stored as the password in the database.
 
 During a login attempt, the bcrypt `compare` function
 is used to compare the password passed in over HTTPS
-to the hashed value in the database.
+to the hashed value retrieved from the database.
 Even if a hacker gained access to one of these hashed password values,
 determining the password from which it was generated would require knowing
 the hashing algorithm that was used and

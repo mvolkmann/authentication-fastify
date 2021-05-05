@@ -15,10 +15,9 @@ const {ObjectID} = mongo;
 
 const ACCESS_TOKEN_MINUTES = 1; // expire after this
 const FROM_EMAIL = 'r.mark.volkmann@gmail.com';
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const LINK_EXPIRE_MINUTES = 10;
 const REFRESH_TOKEN_DAYS = 7; // expire after this
 const SESSION_TOKEN_LENGTH = 50;
-const VERIFY_MINUTES = 10;
 
 //const sendmail = sendmailSetup();
 
@@ -292,7 +291,8 @@ export async function forgotPassword(request, reply) {
       // So it is not possible to use an expired link
       // by simply changing the "expires" query parameter.
       const encodedEmail = encodeURIComponent(email);
-      const expires = Date.now() + ONE_DAY_MS;
+      const expires = new Date();
+      expires.setMinutes(expires.getMinutes() + LINK_EXPIRE_MINUTES);
       const token = createJwt(email, expires);
       const link =
         `https://${ROOT_DOMAIN}/password-reset.html` +
@@ -556,7 +556,7 @@ function sendVerifyEmail(email) {
   const domain = 'api.' + ROOT_DOMAIN;
   const encodedEmail = encodeURIComponent(email);
   const expires = new Date();
-  expires.setMinutes(expires.getMinutes() + VERIFY_MINUTES);
+  expires.setMinutes(expires.getMinutes() + LINK_EXPIRE_MINUTES);
   const expiresMs = expires.getTime();
   const emailToken = createJwt(email, expiresMs);
   const link =
