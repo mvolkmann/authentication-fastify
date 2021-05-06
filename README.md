@@ -1,5 +1,10 @@
 # authentication-fastify
 
+TODO: Integrate most of this into the authentication.md file in your blog!
+For background information on this app, see my blog page on {% aTargetBlank
+"https://mvolkmann.github.io/blog/topics/#/blog/authentication/",
+"authentication" %}.
+
 ## Overview
 
 This application demonstrates user management using Node.js and.
@@ -16,6 +21,17 @@ that can be used to implement the same functionality.
 The web UI uses vanilla JavaScript instead of a framework
 in order to avoid appealing to users of a particular framework
 and to keep the UI simple.
+
+## Libraries
+
+The npm packages used in this app include:
+
+- `bcryptjs`
+- `fastify`
+- `fastify-cookie`
+- `fastify-cors`
+- `jsonwebtoken`
+- `nodemailer`
 
 ## MongoDB
 
@@ -93,10 +109,58 @@ JWT_SIGNATURE=some-random-string
 MONGO_DB_NAME=test
 
 # Replace all the values here that begin with "mongodb-atlas-".
-MONGO_URL=mongodb+srv://mongodb-atlas-username:mongodb-atlas-password@mongodb-atlas-cluster.mongodb.net/mongodb-atlas-db-name?retryWrites=true&w=majority
+MONGO_URL=mongodb+srv://{mongodb-atlas-username}:{mongodb-atlas-password}@{mongodb-atlas-cluster}.mongodb.net/mongodb-atlas-db-name?retryWrites=true&w=majority
 
 ROOT_DOMAIN=nodeauth.dev
 ```
+
+## HTTPS
+
+This app requires the use of HTTPS.
+This section describes steps that can be taken to configure and use this.
+
+In macOS, edit the "hosts" file by entering `sudo vim /etc/hosts`.
+Then add the following lines:
+
+```text
+127.0.0.1 nodeauth.dev
+127.0.0.1 api.nodeauth.dev
+```
+
+Caddy is a local server that is implemented in Go and supports HTTPS.
+Browse {% aTargetBlank "https://caddyserver.com", "caddyserver.com" %}
+for installation instructions.
+In macOS this can be installed by installing Homebrew
+and entering `brew install caddy` and `brew install nss`.
+Create the file `Caddyfile` in the project root directory
+containing the following:
+
+```text
+{
+  http_port 81
+  local_certs
+}
+
+# This is for the UI server.
+nodeauth.dev {
+  reverse_proxy 127.0.0.1:5000
+}
+
+# This is for the API server.
+# Why is it important for this to be a subdomain of the UI server?
+api.nodeauth.dev {
+  reverse_proxy 127.0.0.1:1919
+}
+```
+
+To start the Caddy server, cd to the project root directory
+and enter `caddy run`.
+
+To stop the Caddy server, press ctrl-c or
+enter `caddy stop` in another terminal window.
+
+To reload changes to `Caddyfile` in a running server,
+enter `caddy reload` in another terminal window.
 
 ## Steps to build and run the app
 
@@ -205,26 +269,14 @@ UI styling is done with vanilla CSS defined in `ui/public/styles.css`.
 
 ## Passwords
 
-Passwords are passed from the browser to the server in plain text.
-However, this does not pose a security issue because
-communication between the browser and server
-uses HTTPS which encrypts the data.
-
 The database does not store passwords in plain text.
 Instead it salts and hashes passwords using the npm package
 {% aTargetBlank "https://github.com/kelektiv/node.bcrypt.js", "bcrypt" %}.
-"Bcrypt is an adaptive hash function based on the
-Blowfish symmetric block cipher cryptographic algorithm."
 
-Salting adds bytes to the passwords before they are hashed.
-This increases their length and makes it more difficult
-to guess passwords composed of common words.
 The bcrypt `genSalt` function returns a `Promise`
 that resolves to the salt value.
 A different salt value is used for each user.
 
-Hashing in the context of passwords uses an algorithm
-to generate a value from a salted password.
 The bcrypt `hash` function takes a password and a salt value,
 and returns a `Promise` that resolves to a hashed value.
 This hashed value is stored as the password in the database.
@@ -232,11 +284,6 @@ This hashed value is stored as the password in the database.
 During a login attempt, the bcrypt `compare` function
 is used to compare the password passed in over HTTPS
 to the hashed value retrieved from the database.
-Even if a hacker gained access to one of these hashed password values,
-determining the password from which it was generated would require knowing
-the hashing algorithm that was used and
-the number of rounds passed to the `genSalt` function
-which affects the salt values used.
 
 ## Cookies
 
