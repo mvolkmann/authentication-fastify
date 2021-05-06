@@ -274,8 +274,10 @@ Instead it salts and hashes passwords using the npm package
 {% aTargetBlank "https://github.com/kelektiv/node.bcrypt.js", "bcrypt" %}.
 
 The bcrypt `genSalt` function returns a `Promise`
-that resolves to the salt value.
+that resolves to the salt value that is 29 characters long.
 A different salt value is used for each user.
+The `genSalt` function defaults to using 10 "rounds".
+The number of rounds affects how long it takes to compute a salt value.
 
 The bcrypt `hash` function takes a password and a salt value,
 and returns a `Promise` that resolves to a hashed value.
