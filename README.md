@@ -258,7 +258,7 @@ It will even work if no user is logged in.
 However, the "Protected Page" link at the bottom
 will only be displayed if a user is logged in.
 Clicking the link will display "This is protected data".
-If you attempt browse the URL <https://nodeauth.dev/protected.html>
+If you attempt browse the URL "https://nodeauth.dev/protected.html"
 and are not logged in, you will see "Access to protected data was blocked."
 
 ## Implementation details
