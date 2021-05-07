@@ -3,13 +3,13 @@
     "Caddyfile",
     "HAIC",
     "JWTs",
+    "Tolinski's",
     "hodhov",
     "keyuri",
     "mongodb",
     "nodeauth",
     "otplib",
     "qrcode",
-    "sendmail",
     "siddik"
   ]
 }

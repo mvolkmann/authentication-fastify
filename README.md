@@ -1,17 +1,7 @@
 # authentication-fastify
 
-TODO: Integrate most of this into the authentication.md file in your blog!
-For background information on this app, see my blog page on {% aTargetBlank
-"https://mvolkmann.github.io/blog/topics/#/blog/authentication/",
-"authentication" %}.
-
-## Overview
-
 This application demonstrates user management using Node.js and.
 [fastify](https://github.com/fastify/fastify) library.
-It is based on ideas from the
-[Level Up Tutorials](https://www.leveluptutorials.com) courses
-"Node Fundamentals Authentication" and "Level 2 Node Authentication".
 It is useful for learning about patterns in user management
 that are not tied to a specific server side programming language
 or collection of libraries.
@@ -22,25 +12,50 @@ The web UI uses vanilla JavaScript instead of a framework
 in order to avoid appealing to users of a particular framework
 and to keep the UI simple.
 
+The app is based on concepts I learned from Scott Tolinski's
+{% aTargetBlank "https://www.leveluptutorials.com/", "Level Up Tutorials" %}
+courses on {% aTargetBlank "", "Node Fundamentals Authentication" %}
+and {% aTargetBlank "", "Level 2 Node Authentication" %}.
+I highly recommend checking out these courses
+and many others that Scott has created!
+
+For information on the terminology related to this app and
+strategies for security passwords, see my blog page on {% aTargetBlank
+"https://mvolkmann.github.io/blog/topics/#/blog/authentication/",
+"Authentication" %}.
+
 ## Libraries
 
-The npm packages used in this app include:
+The npm packages used in client side of this app include:
 
+- "@otplib/preset-browser`
+- `http-server`
+- `qrcode`
+
+The npm packages used in the server side of this app include:
+
+- `@otplib/preset-default`
 - `bcryptjs`
+- `dotenv`
 - `fastify`
 - `fastify-cookie`
 - `fastify-cors`
+- `fastify-static`
 - `jsonwebtoken`
+- `mongodb`
 - `nodemailer`
 
 ## MongoDB
 
 The application uses a free MongoDB Atlas account for its database.
 There are two collections, "user" and "session".
+
 To see the contents of these collections and delete documents from them
 for retrying various scenarios, download MongoDB Compass from
 <https://www.mongodb.com/products/compass>.
 This provides a GUI app for interacting with MongoDB databases.
+An issue with this tool is that it is often very slow to show updates
+even when it is manually refreshed.
 
 ## Email
 
@@ -48,12 +63,15 @@ When a new account is created,
 an email message is sent to the user
 that contains a link they can click to verify
 the email address of their account.
+REST services could use the `verified` flag stored in user records
+to restrict usage to verified accounts.
 
 If a user forgets their password,
-an email message is sent to the user
-that contains a link they can click to browse
-a page that allows them to enter a new password.
-The link expires after one day.
+they can enter their email address in the "Forgot Password" section of the UI
+and press the "Forgot Password" button.
+If an account exists for that email address, an email message is sent to it
+that contains a link the user can click
+to browse a page that allows them to enter a new password.
 
 In both cases the link in the email expires after 10 minutes.
 
@@ -153,8 +171,10 @@ api.nodeauth.dev {
 }
 ```
 
-To start the Caddy server, cd to the project root directory
-and enter `caddy run`.
+To start the Caddy server, cd to the project root directory and
+enter `caddy run` to run in the foreground
+or `caddy start` to run in the background.
+If this fails, kill the process listening on port 2019 and try again.
 
 To stop the Caddy server, press ctrl-c or
 enter `caddy stop` in another terminal window.

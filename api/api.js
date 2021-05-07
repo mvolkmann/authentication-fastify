@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import mongo from 'mongodb';
 import nodemailer from 'nodemailer';
-//import sendmailSetup from 'sendmail';
 
 import {getCollection} from './db.js';
 
@@ -18,8 +17,6 @@ const FROM_EMAIL = 'r.mark.volkmann@gmail.com';
 const LINK_EXPIRE_MINUTES = 10;
 const REFRESH_TOKEN_DAYS = 7; // expire after this
 const SESSION_TOKEN_LENGTH = 50;
-
-//const sendmail = sendmailSetup();
 
 // Load environment variables from the .env file into process.env.
 // JWT_SIGNATURE is a hard-to-guess string.
@@ -540,16 +537,6 @@ export async function sendEmail({from = FROM_EMAIL, to, subject, html}) {
   //const info = await mail.sendMail({from, to, subject, html});
   // Output the URL where the Ethereal email can be viewed.
   //console.log('email preview URL =', nodemailer.getTestMessageUrl(info));
-
-  // This approach supposedly doesn't require an SMTP server,
-  // but I couldn't get it to work.  It produced a lot of output
-  // that indicates it worked, but I never receive the email.
-  /*
-  sendmail({from, to, subject, html}, (err, reply) => {
-    console.log('api.js sendEmail: err =', err);
-    console.log('api.js sendEmail: reply =', reply);
-  });
-  */
 }
 
 function sendVerifyEmail(email) {
