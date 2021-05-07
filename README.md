@@ -1,7 +1,7 @@
 # authentication-fastify
 
 This application demonstrates user management using Node.js and
-[fastify](https://github.com/fastify/fastify) library.
+the [fastify](https://github.com/fastify/fastify) library.
 It is useful for learning about patterns in user management
 that are not tied to a specific server side programming language
 or collection of libraries.
@@ -13,19 +13,16 @@ in order to avoid appealing to users of a particular framework
 and to keep the UI simple.
 
 The app is based on concepts I learned from Scott Tolinski's
-{% aTargetBlank "https://www.leveluptutorials.com/", "Level Up Tutorials" %}
-courses on {% aTargetBlank
-"https://www.leveluptutorials.com/tutorials/node-fundamentals-authentication",
-"Node Fundamentals Authentication" %} and {% aTargetBlank
-"https://www.leveluptutorials.com/tutorials/level-2-node-authentication",
-"Level 2 Node Authentication" %}.
+[Level Up Tutorials](https://www.leveluptutorials.com/)
+courses on
+[Node Fundamentals Authentication](https://www.leveluptutorials.com/tutorials/node-fundamentals-authentication)
+and [Level 2 Node Authentication](https://www.leveluptutorials.com/tutorials/level-2-node-authentication).
 I highly recommend checking out these courses
 and many others that Scott has created!
 
 For information on the terminology related to this app and
-strategies for security passwords, see my blog page on {% aTargetBlank
-"https://mvolkmann.github.io/blog/topics/#/blog/authentication/",
-"Authentication" %}.
+strategies for security passwords, see my blog page on
+[Authentication](https://mvolkmann.github.io/blog/topics/#/blog/authentication/).
 
 ## Libraries
 
@@ -149,7 +146,7 @@ Then add the following lines:
 ```
 
 Caddy is a local server that is implemented in Go and supports HTTPS.
-Browse {% aTargetBlank "https://caddyserver.com", "caddyserver.com" %}
+Browse [caddyserver.com](https://caddyserver.com)
 for installation instructions.
 In macOS this can be installed by installing Homebrew
 and entering `brew install caddy` and `brew install nss`.
@@ -294,7 +291,7 @@ UI styling is done with vanilla CSS defined in `ui/public/styles.css`.
 
 The database does not store passwords in plain text.
 Instead it salts and hashes passwords using the npm package
-{% aTargetBlank "https://github.com/kelektiv/node.bcrypt.js", "bcrypt" %}.
+[bcrypt](https://github.com/kelektiv/node.bcrypt.js).
 
 The bcrypt `genSalt` function returns a `Promise`
 that resolves to the salt value that is 29 characters long.
