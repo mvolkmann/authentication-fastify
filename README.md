@@ -1,6 +1,6 @@
 # authentication-fastify
 
-This application demonstrates user management using Node.js and.
+This application demonstrates user management using Node.js and
 [fastify](https://github.com/fastify/fastify) library.
 It is useful for learning about patterns in user management
 that are not tied to a specific server side programming language
@@ -14,8 +14,11 @@ and to keep the UI simple.
 
 The app is based on concepts I learned from Scott Tolinski's
 {% aTargetBlank "https://www.leveluptutorials.com/", "Level Up Tutorials" %}
-courses on {% aTargetBlank "", "Node Fundamentals Authentication" %}
-and {% aTargetBlank "", "Level 2 Node Authentication" %}.
+courses on {% aTargetBlank
+"https://www.leveluptutorials.com/tutorials/node-fundamentals-authentication",
+"Node Fundamentals Authentication" %} and {% aTargetBlank
+"https://www.leveluptutorials.com/tutorials/level-2-node-authentication",
+"Level 2 Node Authentication" %}.
 I highly recommend checking out these courses
 and many others that Scott has created!
 
